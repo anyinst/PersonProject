@@ -1,0 +1,1861 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+     
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
+<head>
+    <script type="text/javascript" src="http://csdnimg.cn/pubfooter/js/repoAddr.js" charset="utf-8"></script>
+
+    <script type="text/javascript" src="http://csdnimg.cn/pubfooter/js/tracking.js" charset="utf-8"></script>  
+
+    <script id="allmobilize" charset="utf-8" src="http://a.yunshipei.com/46aae4d1e2371e4aa769798941cef698/allmobilize.min.js"></script>
+ <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+
+    <title>Cocos2d-x 地图行走的实现1：图论与Dijkstra算法 - Siliphen Labs
+        - 博客频道 - CSDN.NET</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="本文乃Siliphen原创，转载请注明出处：http://blog.csdn.net/stevenkylelee本文的实现基于Cocos2d-x 3.2&#160;目录：1.什么是地图行走2.图论简介3.图论的数据结构4.图编辑的实现思路5.图论结构数据的保存和载入6.经典的最短路径算法Dijkstra1.什么是地图行走&#160;很多游戏会有一" />
+    <script src="http://static.blog.csdn.net/scripts/jquery.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://static.blog.csdn.net/scripts/ad.js?v=1.1"></script>
+        <!--new top-->
+               <link rel="stylesheet" href="http://static.csdn.net/public/common/toolbar/css/index.css">        <!--new top-->
+
+    <link rel="Stylesheet" type="text/css" href="http://static.blog.csdn.net/skin/dark1/css/style.css?v=1.1" />
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="/StevenKyleLee/rss/list" />
+    <link rel="shortcut icon" href="http://csdnimg.cn/public/favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="http://static.blog.csdn.net/scripts/SyntaxHighlighter/styles/default_big.css" />
+ 
+
+
+</head>
+<body>
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="http://static.csdn.net/public/common/toolbar/js/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/stevenkylelee">Siliphen Labs</a></h2>
+            <h3>Standing frozen in the life I&#39;ve chosen</h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>
+                <li id="btnContents"><a href="http://blog.csdn.net/stevenkylelee?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="http://static.blog.csdn.net/images/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/stevenkylelee?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="http://static.blog.csdn.net/images/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/stevenkylelee/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="http://static.blog.csdn.net/images/ico_rss.gif">订阅</span></a></li>                
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "StevenKyleLee";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/stevenkylelee";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod='popu_3' > 
+
+<a href="http://bbs.csdn.net/topics/390812950?page=5#post-398523062"target="_blank">
+<font color=blue>博客专家福利
+</font></a>
+&nbsp;&nbsp;&nbsp;
+
+<a href="http://bbs.csdn.net/topics/390936728">
+<font color=red>C币兑换礼品剧透</font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/41079173">
+<font color=blue>10月推荐文章汇总
+</font></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="http://bbs.csdn.net/topics/390935186">
+<font color=red>加入“技术热心人”，赢丰厚奖品
+</font></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+
+
+</div>                        </div>
+                        
+
+  
+<link href="http://static.blog.csdn.net/css/comment1.css" type="text/css" rel="stylesheet" />
+<link href="http://static.blog.csdn.net/css/style1.css" type="text/css" rel="stylesheet" />
+<script language='JavaScript' type='text/javascript' src='http://download.csdn.net/js/jquery.cookie.js'></script>
+<script type="text/javascript" src="http://csdnimg.cn/rabbit/search-service/main.js"></script>
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Original"></span>
+
+
+    <h1>
+        <span class="link_title"><a href="/stevenkylelee/article/details/38408253">
+        Cocos2d-x 地图行走的实现1：图论与Dijkstra算法
+        </a></span>
+    </h1>
+</div>
+
+    <div class="article_manage">
+        <span class="link_categories">
+        分类：
+            <a href="/StevenKyleLee/article/category/2430059" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">Cocos2d-x</a> 
+            <a href="/StevenKyleLee/article/category/2430081" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">算法实践</a> 
+        </span>
+    <span class="link_postdate">2014-08-07 00:23</span>
+    <span class="link_view" title="阅读次数">2066人阅读</span>
+    <span class="link_comments" title="评论次数"><a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(18)</span>
+    <span class="link_collect"><a href="javascript:void(0);" onclick="javascript:_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shoucang']);collectArticle('Cocos2d-x 地图行走的实现1：图论与Dijkstra算法','38408253');return false;" title="收藏">收藏</a></span>
+    <span class="link_report"><a href="#report"  onclick="javascript:_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_jubao']);report(38408253,2);return false;" title="举报">举报</a></span>
+    
+</div>
+<div class="tag2box"><a href='http://www.csdn.net/tag/cocos2d-x' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">cocos2d-x</a><a href='http://www.csdn.net/tag/%e5%9c%b0%e5%9b%be%e8%a1%8c%e8%b5%b0' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">地图行走</a><a href='http://www.csdn.net/tag/Dijkstra' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">Dijkstra</a><a href='http://www.csdn.net/tag/%e5%9b%be' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">图</a><a href='http://www.csdn.net/tag/%e6%9c%80%e7%9f%ad%e8%b7%af%e5%be%84' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">最短路径</a></div>
+
+  
+    
+<div id="article_content" class="article_content">
+
+<p><span style="font-family:Microsoft YaHei; font-size:18px"></span></p>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>下一节《Cocos2d-x 地图行走的实现2：SPFA算法》：</span></p>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px"><a target="_blank" target="_blank" href="http://blog.csdn.net/stevenkylelee/article/details/38440663"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>http://blog.csdn.net/stevenkylelee/article/details/38440663</a></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>本文乃Siliphen原创，转载请注明出处：<a target="_blank" target="_blank" href="http://blog.csdn.net/stevenkylelee">http://blog.csdn.net/stevenkylelee</a></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span><span style="font-family:'Microsoft YaHei'; font-size:18px">本文的实现使用的环境是：Cocos2d-x 3.2，VS2013</span></p>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>本文，我们最终实现的地图行走效果如下2图：</span></p>
+<p><br>
+</p>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px"><span style="white-space:pre"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　下面是2张屏幕录制的gif动画图，有点大，看不到的话，耐心等待一下，或者刷新页面试试。</span></span></span></p>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px"><img src="http://img.blog.csdn.net/20140806225153703" alt=""><br>
+</span></p>
+<div><span style="font-family:'Microsoft YaHei'; font-size:18px"><br>
+</span></div>
+<div><span style="font-family:'Microsoft YaHei'; font-size:18px"><span style="white-space:pre"></span><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>地图行走用于现实的地图上。</span></div>
+<div><span style="font-family:'Microsoft YaHei'; font-size:18px"><br>
+</span></div>
+<div><span style="font-family:'Microsoft YaHei'; font-size:18px"><img src="http://img.blog.csdn.net/20140807000423656" alt=""><br>
+</span></div>
+<div><span style="font-family:'Microsoft YaHei'; font-size:18px"><br>
+</span></div>
+<br>
+<p><br>
+</p>
+<h2><span style="font-family:'Microsoft YaHei'; font-size:18px"><strong>1.什么是地图行走</strong></span></h2>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>很多游戏会有一个“世界”的概念。玩家在这个世界中行走，到达不同的地方去执行的任务，打怪或者是触发剧情等。下图是《锁链战记》的世界地图的截图。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806225021062" alt=""><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>不同游戏的世界地图行走表现不同，以锁链战记为例，对于打过的关卡，玩家角色是直接瞬移过去的。对与未打过的关卡，有一个玩家角色行走过去的动画。另一些游戏的地图行走则是到达任何地方都有玩家角色的行走动画。我个人比较青睐于后者。《锁链战记》的瞬移设计，可能是出于这样的考虑：行走动画的播放需要耗费时间，有时候看起来比较烦，拖慢游戏节奏。但行走动画，有一个“走过去的过程”，能更加表现现实，更有代入感。这是一个游戏策划的问题了，到底是瞬移过去，还是走过去。一个折中的方案是，任何行走都控制在指定的一段时间内完成。这样既有代入感也不会拖慢游戏节奏。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>一般来说，制作行走过程要比直接瞬移复杂。做出了行走过程要改成瞬移是不难的，但反之则有点麻烦。所以，下面我们先实现地图行走。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<h2><strong><span style="font-family:Microsoft YaHei; font-size:18px">2.图论简介</span></strong></h2>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>仔细观察游戏的世界地图就会发现，除去界面表现后，地图的结构非常类&#20284;《离散数学》或《数据结构》中的图论。图论的图表示如下图所示：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806225325531" alt=""><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>上图中，实心圆形在图论中叫做顶点（Vertex），连接2个顶点之间的线段叫做边（Edge）。顶点和边都是抽象的，顶点没有几何位置信息，边通常只是表示2个顶点之间有通路和这条通路的路过的代价。代价也是一个抽象的概念，上图中，顶点A到顶点B的代价是7，可以表示城堡A到城堡B的路程是7公里，也可以表示城堡A到城堡B的路费是7英镑。</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>下图中，图1和图2是等价的，尽管它们的几何形态不同。</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806225620746" alt=""><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>判断它们相同的依据是：顶点相同，边相同，边上的代价也相同。因为顶点没有几何位置信息，所以把顶点A放在任何几何位置都可以，只要它到顶点B的代价不变（7），到顶点C的代价不变（20）。如果A到B的代价改变了，从7变到了50，那么图就改变了，尽管顶点A、B的几何位置不变。老实说，图论的这种抽象，让我刚接触图论时多少有点不适应。（学美术出身的我总是会关注图像的形态，之前总是觉得看起来的样子不同就是不同）但这种抽象恰恰是数学和编程解决问题的精妙之处。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>以上说的是无向图。无向图就是图的边是没有方向的。如果，顶点A到顶点B之间有一条边，就认为可以从A到B也可以从B到A。还有另一种图是有向图，有向图如下所示：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806225654769" alt=""><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>有向图就是图的边是有方向的。如上图所示，顶点A到顶点B有一条有向边，但这条边只表示能从A到B，而B没有一条到A的有向边，所以不能从B直接到A。从B到A只有先到C再从C到A。有向图有自己的一些概念术语，顶点A和顶点B之间的那条边，对于顶点A来说叫做出度，对于顶点B来说叫做入度。为了让解释更加易懂，下面我们称出度叫出边，入度叫入边吧。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>有向图一般用来表示什么含义呢？某些城市的某些路段是车辆单行线的，因为某种原因，扩路困难但同时某个方向的车流量又大，所以规定车辆只能往一个方向走。这种情况就可以用有向图来表示了。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>上图中，顶点B到顶点C的代价是8，而反过来顶点C到顶点B的代价是50。这又是什么情况呢？</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>情况1：假设B是山顶位置，C地山底位置，从山顶徒步下山耗费的体力是8，而要徒步上山耗费的体力是50。C到B还可以另加一条代价是1的边。表示坐缆车上山只需要耗费1的体力。这种建模，可以用来做某种策略的计算，比如：计算最节省体力达到山顶的策略。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>情况2：图可以表示从一点到另一点驾车所耗费的时间。Siliphen驾车从家B出发，到达了途中的一个位置C，这时突然想起有一个重要文件落在家B了，需要回去取。B到C的时间是8分钟，而因为路况问题，下班车辆单向高峰期等原因，从C到B需要50分钟。Siliphen回家取文件的最快策略应该是先花费20分钟开车到A，再从A花费7分钟到B。总体耗时27分钟。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>可以看到有向图很有用，可以为情况建模并设计算法去计算出要达到某种目的的策略。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>有向图可以用2条有向边来模拟无向图的一条无向边。如下图所示：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806225740977" alt=""><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p></p>
+<h2><strong><span style="font-family:Microsoft YaHei; font-size:18px">3.图论的数据结构的实现</span></strong></h2>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>图是一种很重要的数据结构。路径寻找、人工智能、策略选择等都会用到。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>一般来说有向图能够比无向图表达更多的内容，同时有向图也能够模拟出无向图。所以，这里我们选择实现有向图。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>我们的目标是：“自己写一个图论的数据结构的类封装，在这里可以用来表示世界地图和寻路计算。也可以作为不同的使用目的、用在别的使用不同技术的项目中，例如：QT，MFC等。”</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>要做类封装，第一件事就是抽象出类了，什么东西应该成为一个类。我个人有一个经验：你看到的或者你意识到存在的东西都可以考虑定为一个类。从图中，我们看到了顶点和边。OK，我们有2个类了：class Vertex , class Edge。顶点和边的集合构成一张图。OK，class
+ Graph 类有了。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>图的数据结构表示通常有2种。1.邻接矩阵 2.邻接表。邻接表较为常用。如果邻接表的顶点类只保存其出度的信息，对于查询该顶点的入度信息就比较麻烦了，需要遍历其他所有的顶点来确定哪些顶点的出度是指向该顶点的。所以，也可以增加一个入度信息表来方便查询入度信息，这个做法称为逆邻接表。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>我的封装实现是邻接表，顶点类Vertex有出边信息也有入边信息。因为，需要维护入边信息，所以插入、删除顶点和边的操作会复杂一些。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>下面是我的有向图的封装的实现代码：</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">头文件：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"></span><pre name="code" class="cpp">#pragma once
+#include &lt;vector&gt;
+#include &lt;unordered_map&gt;
+using namespace std ;
+
+class Edge ; 
+class Vertex ; 
+class Graph ;
+class GraphPathfinding ;
+
+/*
+	图顶点
+*/
+class Vertex
+{
+	friend class Graph ;
+	friend class GraphPathfinding ; 
+	friend class Dijkstra ;
+
+public:
+
+	Vertex( const string&amp; Name )
+	{
+		m_strId = Name ;
+
+		m_Cost = 0 ;
+
+		m_pGraph = 0 ;
+	}
+
+	~Vertex( ) { };
+
+public:
+
+	// 附加数据
+	unordered_map&lt; string , void*&gt; UserData ;
+
+public : 
+
+	const unordered_map&lt; string , Edge* &gt;&amp; GetEdgesOut( ) const { return m_EdgesOut ; }
+
+	const unordered_map&lt; string , Edge* &gt;&amp; GetEdgesIn( ) const { return m_EdgesIn ; }
+
+	const string&amp; GetId( ) const { return m_strId ; }
+
+	const string&amp; GetText( ) const { return m_Text ; }
+	void SetText( const string&amp; Text ) { m_Text = Text ; }
+
+	Graph * GetGraph( ) { return m_pGraph ; }
+	
+protected: 
+
+	// 出边集合
+	unordered_map&lt; string , Edge* &gt; m_EdgesOut ; 
+
+	// 入边集合
+	unordered_map&lt; string , Edge* &gt; m_EdgesIn ;
+
+	// 节点表示的字符串
+	string m_Text ; 
+
+	// 节点的ID
+	string m_strId ; 
+
+	// 用于寻路算法。路径代价估计
+	int m_Cost ;
+
+	// 所属的图
+	Graph * m_pGraph ; 
+
+};
+
+
+
+
+/*
+	图顶点的边
+	有向边
+*/
+class Edge
+{
+	friend class Graph ;
+
+public:
+
+	Edge( )
+	{
+		m_Weight = 0 ;
+
+		m_pStartVertex = m_pEndVertex = 0 ;
+	}
+
+	Edge( Vertex* pStartVertex , Vertex* pEndVertex , int Weight = 0 )
+	{
+		m_Weight = Weight ;
+
+		m_pStartVertex = pStartVertex ;
+		m_pEndVertex = pEndVertex ;
+	}
+
+public:
+
+	int GetWeight( ) const { return m_Weight ; }
+	void SetWeight( int var ) { m_Weight = var ; }
+
+	Vertex* GetStartVertex( ) const { return m_pStartVertex ; }
+
+	Vertex* GetEndVertex( ) const { return m_pEndVertex ; }
+
+protected:
+
+	// 边的权值
+	int m_Weight  ;
+
+	// 起点的顶点
+	Vertex * m_pStartVertex ;
+
+	// 终点的顶点
+	Vertex * m_pEndVertex ;
+
+};
+
+
+
+/*
+	图.
+	图会负责释放顶点和边的内存
+*/
+class Graph
+{
+public : 
+
+	Graph( ) ; 
+	~Graph( ) ;
+
+public : 
+
+	// 添加一个顶点
+	void AddVertex( Vertex* pV ) ;
+
+	// 删除一个顶点
+	void DeleleVertex( const string&amp; VertexName ) ;
+
+
+	// 添加一条边。返回边对象
+	Edge* AddEdge( const string&amp; Vertex1Name , const string&amp; Vertex2Name , int Weight = 0 ) ;
+
+	// 删除一条边
+	void DeleteEdge( const string&amp; StartVertexName , const string&amp; EndVertexName ) ;
+
+public : 
+
+	const unordered_map&lt; string , Vertex* &gt;&amp; GetVertexes( ) const { return m_Vertexes ; }
+
+protected: 
+
+	// 顶点的集合
+	unordered_map&lt; string , Vertex* &gt; m_Vertexes ; 
+
+	// 边的集合。Key的格式“顶点1name-&gt;顶点2name&quot;
+	unordered_map&lt; string , Edge* &gt; m_Edges ;
+
+protected:
+
+#define GetEdgeKey( pV1 , pV2 )(  pV1-&gt;m_strId + &quot;-&gt;&quot; + pV2-&gt;m_strId ) ; 
+
+};
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">　　实现文件：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"></span></p>
+<pre name="code" class="cpp">#include &quot;Graph.h&quot;
+
+Graph::Graph( )
+{
+
+}
+
+Graph::~Graph( )
+{
+	// 释放所有顶点
+	for ( auto&amp; kv : m_Vertexes )
+	{
+		delete kv.second ; 
+	}
+
+	// 施放所有的边
+	for ( auto&amp; kv : m_Edges )
+	{
+		delete kv.second ; 
+	}
+}
+
+void Graph::AddVertex( Vertex* pV )
+{
+	if ( m_Vertexes.find( pV-&gt;GetId( ) ) != m_Vertexes.end( ) )
+	{
+		// 已经存在相同Key的顶点
+	}
+
+	m_Vertexes[ pV-&gt;GetId( ) ] = pV ; 
+	pV-&gt;m_pGraph = this ;
+}
+
+void Graph::DeleleVertex( const string&amp; VertexName )
+{
+	Vertex *pV = m_Vertexes.find( VertexName )-&gt;second ; 
+
+	// 遍历要删除的节点的出边
+	for ( auto it = pV-&gt;m_EdgesOut.begin( ) , end = pV-&gt;m_EdgesOut.end( ) ; it != end ; ++it )
+	{
+		Edge *pEdgeOut = it-&gt;second ;
+
+		// 删除入边记录
+		pEdgeOut-&gt;m_pEndVertex-&gt;m_EdgesIn.erase( VertexName ) ;
+
+		// 在边集合列表中删除
+		string key = GetEdgeKey( pV , pEdgeOut-&gt;m_pEndVertex ) ; 
+		m_Edges.erase( key ) ; 
+
+		// 删除边对象
+		delete pEdgeOut ; 
+	}
+
+	delete pV ; 
+
+}
+
+
+
+Edge * Graph::AddEdge( const string&amp; Vertex1Name , const string&amp; Vertex2Name , int Weight /*= 0 */ )
+{
+	Vertex *pV1 = m_Vertexes.find( Vertex1Name )-&gt;second ;
+	Vertex *pV2 = m_Vertexes.find( Vertex2Name )-&gt;second ;
+
+	// 加入边集合
+	Edge *pEdge = new Edge( pV1 , pV2 , Weight ) ;
+	string key = GetEdgeKey( pV1 , pV2 ) ; 
+	m_Edges[ key ] = pEdge ; 
+
+	// 加入V1的出边
+	pV1-&gt;m_EdgesOut[ Vertex2Name ] = pEdge ;
+
+	// 加入V2的入边
+	pV2-&gt;m_EdgesIn[ Vertex1Name ] = pEdge ;
+
+	return pEdge ; 
+
+}
+
+void Graph::DeleteEdge( const string&amp; StartVertexName , const string&amp; EndVertexName )
+{
+	Vertex *pV1 = m_Vertexes.find( StartVertexName )-&gt;second ;
+	Vertex *pV2 = m_Vertexes.find( EndVertexName )-&gt;second ;
+
+	string key = GetEdgeKey( pV1 , pV2 ) ;
+
+	Edge *pEdge = m_Edges.find( key )-&gt;second ; 
+
+	// 在顶点1的出边列表中删除
+	pV1-&gt;m_EdgesOut.erase( EndVertexName ) ; 
+	
+	// 在顶点2的入边列表中删除
+	pV2-&gt;m_EdgesIn.erase( StartVertexName ) ;
+
+	// 在边集合列表中删除
+	m_Edges.erase( key ) ; 
+
+	delete pEdge ; 
+
+}
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>说明下以上代码的设计。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>要增加一个图顶点。需要先为顶点确定一个字符串类型的ID，new一个Vertex对象出来，然后Graph::AddVertex把顶点加入到图中。Graph管理顶点对象的释放，不用手动delete。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>有一种设计是：Graph::NewVertex(); 用图类对象来创建顶点。表明这个顶点对象的内存由Graph来管理。TinyXml库的接口就是这样的。考虑到可能用户要继承自Vertex派生出自己的顶点类，所以没采用这种设计。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>这里我们的图是用在cocos2d-x中作为地图行走的，有些人觉得Vertex类应该继承自Node。假如这样做的话，我们的图数据结构就依赖于cocos2d-x库了。尽管，我们是用在cocos2d-x的项目中，但为了通用考虑，应该尽量设计得与cocos2d-x无关。所以，我只用了C&#43;&#43;语言本身来实现。考虑下这种情况，某一天策划需要一个完善的地图编辑器，可以编辑关卡内要触发的事件或者是敌人的生成规则。这种情况，由于cocos2d-x内置的控件较少，我们可能需要用QT写一个编辑器，这时，我们的图数据结构也可以放到QT的项目中使用。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>地图行走上的节点涉及到了表现，我们可以另写一个类：class MapWalkVertex : public Node。MapWalkVertex 和Vertex互相关联，互相保存一个对方的引用（指针）。图类与图顶点类、地图行走的节点的关系如下：</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806225835203" alt=""><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>MapWalkVertex头文件 代码如下：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"></span></p>
+<pre name="code" class="cpp">#pragma once
+
+#include &quot;cocos2d.h&quot;
+USING_NS_CC ;
+
+class Vertex ; 
+
+class MapWalkVertex :
+	public Node
+{
+public:
+	MapWalkVertex( );
+	~MapWalkVertex( );
+
+public:
+
+	CREATE_FUNC( MapWalkVertex ) ;
+
+	bool init( ) ;
+
+public : 
+
+	void SetGraphVertex( Vertex * Var ) { m_pGraphVertex = Var ; }
+	Vertex* GetGraphVertex( ) { return m_pGraphVertex ; }
+
+private:
+
+	Vertex * m_pGraphVertex ; 
+
+};
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>我们的Vertex并没有MapWalkVertex类型的字段。它怎么关联到MapWalkVertex对象呢？我们的Vertex有一个字段：unordered_map&lt;string , void*&gt; UserData ; 这个字段模拟了“动态属性”。要关联MapWalkVertex对象对象可以这样做：</span></p>
+<p><br>
+</p>
+<pre name="code" class="cpp">Vertex *pVtx = new Vertex( “A” ) ;
+MapWalkVertex *pMwv = MapWalkVertex::create() ;
+
+// 互相关联起来
+pVtx-&gt;UserData[ “mwv” ] = pMwv ; 
+pMwv-&gt; SetGraphVertex( pVtx ) ; 
+
+// 要取得图顶点关联的地图行走的节点可以这样做
+MapWalkVertex *pMwv2 = (MapWalkVertex *)pVtx-&gt;UserData[ “mwv” ] ; 
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>在使用上，这样做有点绕，有点麻烦，互相关联来关联去的。设计可复用的组件就要在使用上付出一定的代价，没办法。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<h2><strong><span style="font-family:Microsoft YaHei; font-size:18px">4.</span></strong><span style="font-family:'Microsoft YaHei'">图编辑器的实现思路</span></h2>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">　　一般编辑器应该用普通应用软件开发的技术来做。如：Winform , QT , MFC等。这里方便起见，图的编辑也在cocos2d-x中做了。做可视化的图形编辑器首先是定义操作状态类型。比如：鼠标点了一点屏幕，这个操作是放置人物，还是放置一个节点。像Photoshop这样的软件，在画布上点了一点，是用画笔点画了一下，还是用魔棒选取工具做了选择。操作状态类型就是用来区分动作（比如，点击）的不同含义。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>操作状态定义如下：</span></p>
+<br>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"></span></p>
+<pre name="code" class="cpp">	// 操作模式状态
+	enum class OperationMode
+	{
+		//  放置顶点
+		PutVertex , 
+
+		// 拖曳场景
+		DragContent ,
+
+		// 拖曳边
+		DragEdge , 
+
+		// 放置角色
+		PositionRole , 
+
+		// 行走
+		RoleWalk , 
+
+	};
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>然后，我们在onTouchBegan，onTouchMoved， onTouchEnded 3个触摸函数中针对不同情况做不同的处理。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>由于编辑处理的代码较多，就不直接贴代码了，截图演示一下大概的思路。</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806230252650" alt=""></span><br>
+</p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>这也是手游实现复杂操作的一种处理方法。在不同的操作状态下，执行不同的代码。状态的切换大部分是通过按下左边的按钮。如下图：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806230126859" alt=""></span><br>
+</p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>这组按钮是用CocoStudio的UI编辑器做的。善用各种工具，事半功倍。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>有必要说下顶点之间边和拖曳边的显示的实现。该操作如下图：</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806230426733" alt=""><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>边的显示，其实是一张图片。如何让一个Sprite当作直线来用呢？先准备一个水平线段的图片，大小没关系，可以用10*5像素。有2个操作：1.算出起点到终点的长度，根据长度进行Sprite的缩放。2.起点到终点是一条直线，计算这条直线与水平的角度，Sprite进行相应的旋转。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>实现代码如下：</span></p>
+<br>
+<p></p>
+<pre name="code" class="cpp">void LayerMapWalk::MakeLine( Sprite* pSpr , const Point&amp; pt1 , const Point&amp; pt2 )
+{
+	// 设置锚点与位置
+	pSpr-&gt;setAnchorPoint( Point( 0 , 0.5 ) ) ;
+	pSpr-&gt;setPosition( pt1 ) ;
+
+	// 缩放
+	float width = pSpr-&gt;getTexture( )-&gt;getContentSize( ).width ;
+	auto v = pt2 - pt1 ;
+	float len = v.getLength( ) ;
+	float ScaleX = len / width ;
+	pSpr-&gt;setScaleX( ScaleX ) ;
+
+	// 旋转
+	float rad = v.getAngle( ) ;
+	float Rotation =  CC_RADIANS_TO_DEGREES( -rad )  ;
+	pSpr-&gt;setRotation( Rotation ) ;
+
+}
+</pre><br>
+<p></p>
+<h2><strong><span style="font-family:Microsoft YaHei; font-size:18px">5.图数据结构的保存和载入</span></strong></h2>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>我们编辑好的图，需要持久化。下次可以载入使用。对于地图行走节点需要保存的信息有：顶点ID，节点的位置。边需要保存的信息有：起始顶点的ID，终点顶点的ID，边上的权&#20540;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>我们选择用xml进行保存。Cocos2d-x集成有TinyXml库，读写xml是比较方便的。</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806230606386" alt=""><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>上图中的图，保存为xml后的数据是这样：</span></p>
+<br>
+<p></p>
+<pre name="code" class="html">&lt;Graph&gt;
+    &lt;Vertexes&gt;
+        &lt;Vertex Id=&quot;938&quot; x=&quot;505.957&quot; y=&quot;358.936&quot;/&gt;
+        &lt;Vertex Id=&quot;721&quot; x=&quot;411.113&quot; y=&quot;206.187&quot;/&gt;
+        &lt;Vertex Id=&quot;64&quot; x=&quot;599.803&quot; y=&quot;267.086&quot;/&gt;
+    &lt;/Vertexes&gt;
+    &lt;Edges&gt;
+        &lt;Edge StartVertexId=&quot;938&quot; EndVertexId=&quot;64&quot; Weight=&quot;131&quot;/&gt;
+        &lt;Edge StartVertexId=&quot;938&quot; EndVertexId=&quot;721&quot; Weight=&quot;179&quot;/&gt;
+        &lt;Edge StartVertexId=&quot;721&quot; EndVertexId=&quot;64&quot; Weight=&quot;198&quot;/&gt;
+        &lt;Edge StartVertexId=&quot;721&quot; EndVertexId=&quot;938&quot; Weight=&quot;179&quot;/&gt;
+        &lt;Edge StartVertexId=&quot;64&quot; EndVertexId=&quot;721&quot; Weight=&quot;198&quot;/&gt;
+        &lt;Edge StartVertexId=&quot;64&quot; EndVertexId=&quot;938&quot; Weight=&quot;131&quot;/&gt;
+    &lt;/Edges&gt;
+&lt;/Graph&gt;
+</pre><br>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>咦，图中有3条边，为什么保存为xml后，有6条边的信息？回顾下之前，我们实现的是有向图的数据结构，有向图模拟无向图，就是多加一条反向的有向边。所以有向图模拟无向图，有向图边的数量是无向图边的数量的2倍。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>图数据的保存和读取，也就是场景数据的持久化，我们可以用一个单独的类来做。避免Layer层的代码过多。我们写的类叫：MapWalkConfigManager（地图行走配置管理器）。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>该类头文件代码：</span></p>
+<br>
+<p></p>
+<pre name="code" class="cpp">#pragma once
+#include &lt;string&gt;
+using namespace std ;
+
+class LayerMapWalk ; 
+
+class MapWalkConfigManager
+{
+public:
+	MapWalkConfigManager( );
+	~MapWalkConfigManager( );
+
+public : 
+
+	static void Load( const string&amp; ConfigFileName , LayerMapWalk * pLayerMapWalk ) ;
+
+	static void Save( const string&amp; ConfigFileName , LayerMapWalk * pLayerMapWalk ) ;
+
+};
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">　　Cpp代码</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<pre name="code" class="cpp">#include &quot;MapWalkConfigManager.h&quot;
+#include &quot;LayerMapWalk.h&quot;
+#include &quot;MapWalkVertex.h&quot;
+
+#include &quot;tinyxml2/tinyxml2.h&quot;
+using namespace tinyxml2 ;
+
+MapWalkConfigManager::MapWalkConfigManager( )
+{
+}
+
+
+MapWalkConfigManager::~MapWalkConfigManager( )
+{
+}
+
+void MapWalkConfigManager::Load( const string&amp; ConfigFileName , LayerMapWalk * pLayerMapWalk )
+{
+	tinyxml2::XMLDocument doc ;
+
+	doc.LoadFile( ConfigFileName.c_str( ) ) ; 
+
+	unordered_map&lt; string , MapWalkVertex* &gt; m_MwvList ; 
+
+	auto pElemRoot = doc.RootElement( ) ; 
+
+	// 读取顶点的信息。创建出相应的顶点在界面上显示
+	auto pElemVertexes = pElemRoot-&gt;FirstChildElement( &quot;Vertexes&quot; ) ;
+	for ( auto pElem = pElemVertexes-&gt;FirstChildElement( ) ; pElem != 0 ; pElem = pElem-&gt;NextSiblingElement( ) )
+	{
+		string strId = pElem-&gt;Attribute( &quot;Id&quot; ) ; 
+		float x = atof( pElem-&gt;Attribute( &quot;x&quot; ) ) ; 
+		float y = atof( pElem-&gt;Attribute( &quot;y&quot; ) ) ;
+
+		auto pMwv = MapWalkVertex::create( ) ; 
+		pMwv-&gt;setPosition( x , y ) ; 
+		pLayerMapWalk-&gt;AddVertex( pMwv , strId.c_str() ) ;
+
+		m_MwvList[ strId ] = pMwv ; 
+
+	}
+	
+	// 读取边的信息。创建出相应的边。
+	auto pElemEdge = pElemRoot-&gt;FirstChildElement( &quot;Edges&quot; ) ;
+	for ( auto pElem = pElemEdge-&gt;FirstChildElement( ) ; pElem != 0 ; pElem = pElem-&gt;NextSiblingElement( ) )
+	{
+		string v1Id = pElem-&gt;Attribute( &quot;StartVertexId&quot; ) ;
+		string v2Id = pElem-&gt;Attribute( &quot;EndVertexId&quot; ) ;
+		int  Weight = atof( pElem-&gt;Attribute( &quot;Weight&quot; ) ) ;
+
+		pLayerMapWalk-&gt;AddEdge( m_MwvList[ v1Id ] , m_MwvList[ v2Id ] ) ; 
+
+	}
+
+
+}
+
+void MapWalkConfigManager::Save( const string&amp; ConfigFileName , LayerMapWalk * pLayerMapWalk )
+{
+	tinyxml2::XMLDocument doc ;
+
+	auto pElemGraph= doc.NewElement( &quot;Graph&quot; ) ; 
+	doc.InsertEndChild( pElemGraph ) ;
+
+	auto pElemGvRoot = doc.NewElement( &quot;Vertexes&quot; ) ;
+	pElemGraph-&gt;InsertEndChild( pElemGvRoot ) ;
+
+	// 保存顶点信息
+	for ( size_t i = 0 ; i &lt; pLayerMapWalk-&gt;m_MapWalkVertexes.size( ) ; ++i )
+	{
+		auto pMwv = pLayerMapWalk-&gt;m_MapWalkVertexes[ i ] ;
+		auto pElemGv = doc.NewElement( &quot;Vertex&quot; ) ;
+
+		pElemGv-&gt;SetAttribute( &quot;Id&quot; , pMwv-&gt;GetGraphVertex()-&gt;GetId().c_str() ) ;
+
+		pElemGv-&gt;SetAttribute( &quot;x&quot; , pMwv-&gt;getPositionX( ) ) ;
+
+		pElemGv-&gt;SetAttribute( &quot;y&quot; , pMwv-&gt;getPositionY( ) ) ;
+
+		pElemGvRoot-&gt;InsertEndChild( pElemGv ) ;
+	}
+
+	auto pElemEdgeRoot = doc.NewElement( &quot;Edges&quot; ) ;
+	pElemGraph-&gt;InsertEndChild( pElemEdgeRoot ) ;
+
+	// 保存边的信息
+	for ( size_t i = 0 ; i &lt; pLayerMapWalk-&gt;m_MapWalkVertexes.size( ) ; ++i )
+	{
+		auto pMwvStart = pLayerMapWalk-&gt;m_MapWalkVertexes[ i ] ;
+
+		auto pVS = pMwvStart-&gt;GetGraphVertex( ) ; 
+		// 遍历所有出边
+		const auto&amp; Eo = pVS-&gt;GetEdgesOut( ) ;
+		for ( auto&amp; it : Eo )
+		{
+			auto pElemEdge = doc.NewElement( &quot;Edge&quot; ) ;
+
+			auto pEdge = it.second ; 
+			auto pVE = pEdge-&gt;GetEndVertex( ) ;
+
+			pElemEdge-&gt;SetAttribute( &quot;StartVertexId&quot; , pVS-&gt;GetId( ).c_str() ) ; 
+			pElemEdge-&gt;SetAttribute( &quot;EndVertexId&quot; , pVE-&gt;GetId( ).c_str() ) ;
+			pElemEdge-&gt;SetAttribute( &quot;Weight&quot; , pEdge-&gt;GetWeight() ) ;
+
+			pElemEdgeRoot-&gt;InsertEndChild( pElemEdge ) ;
+		}
+		
+	}
+
+	doc.SaveFile( ConfigFileName.c_str() ) ; 
+
+}
+</pre><br>
+<p></p>
+<h2><strong><span style="font-family:Microsoft YaHei; font-size:18px">6.经典的最短路径算法Dijkstra</span></strong></h2>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>到此为止，图的创建、编辑、保存、载入都做完了。是时候让玩家角色实现地图行走了。一般角色从一点到另一点走的是一个最短路径，而不会是乱走。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>图的最短路径的计算，需要依赖边上的权&#20540;。这里我们需要计算的是一点到另一点在几何距离上最短的路径，所以我们边上的权&#20540;就是2个顶点的几何距离。这个在编辑图创建边的时候计算好。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>计算图最短路径的算法很多，这里介绍并实践经典的Dijkstra算法。Dijkstra的执行类&#20284;BFS（广度优先搜索），并且使用了贪心策略。很多最短路径算法都使用了一种叫做“松弛（Relax）”操作，Dijkstra也不例外，Relax是个怎样的操作呢？</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>松弛是针对边的，但可能会改变出边终点对应的顶点的路径代价估计&#20540;。顶点的路径代价估计&#20540;又是什么？要计算最短路径，每个顶点还需要一个属性，这个属性就是路径代价估计。回头看看Vertex类的代码，找到一个int m_Cost ; 的字段，这个字段就是路径代价估计。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>一个顶点的路径代价估计属性表示从起始顶点出发到达该顶点所花费的代价。这个花费的代价是怎样计算出来的呢？通过累加边上的权&#20540;。看下图：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><img src="http://img.blog.csdn.net/20140806230814104" alt=""><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>从A点出发，目的地是D。A到C边上的权&#20540;是1，A到B边上的权&#20540;是5。A的路径估计为0，因为它到起点的代价为0，显然，自己到自己是无代价的。C的路径代价是1。因为从A到C的边上的权&#20540;是1。B的路径代价是5，因为从A到B的边上的权&#20540;是5。D有2个可能的路径代价&#20540;，8和11。8是B本身的路径代价&#20540;加上B到C边上的权&#20540;，11是C本身的路径代价&#20540;加上从C到D边上的权&#20540;。最短路径就是，路径代价相加起来最小的那条路径。显然，A到B的最短路径是A-
+ &gt;B-&gt;D，而不是A-&gt;C-&gt;D。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>一开始，我们只知道起点A的路径代价为0，B和C的路径代价都是不知道的，但我们知道从A到C和B的边上的权&#20540;。通过A路径代价&#20540;和边权&#20540;的累加，我们就可以知道B和C的路径代价了。OK，来看看Relax对出度顶点的路径代价的影响。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>Relax松弛A到B的边。如果A的路径代价加上边上的权&#20540;的和小于B的路径代价的&#20540;，就把B的路径代价&#20540;更新为这个和。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>中文伪代码是这样：</span></p>
+<br>
+<p></p>
+<pre name="code" class="plain">void Relax( 顶点1，顶点2，顶点1到顶点2边上的权值)
+{
+	int n = 顶点1的路径代价 + 顶点1到顶点2边上的权值 ; 
+	如果 n 小于顶点2的路径代价
+	{
+		顶点2的路径代价 = n ; 
+	}
+}
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>结合我们的图数据结构代码，Relax的C语言代码是这样：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<pre name="code" class="cpp">void Relax( Vertex * pVertex1 , Vertex * pVertex1 , int Weight )
+{
+	int n = pVertex1-&gt;m_Cost + Weight ; 
+	If( n &lt; pVertex2-&gt;m_Cost )
+	{
+		pVertex2-&gt;m_Cost = n ; 
+	}
+}
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>注意，这里是顶点1到顶点2的出边。Relax只可能会修改顶点2的路径代价&#20540;，而不会修改顶点1的。理解了Relax对顶点的路径代价的影响后，我们模拟这样一个过程：</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>1.对所有顶点的路径代价&#20540;进行初始化，比如都为1000。然后设置起点A的路径代价&#20540;为0。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>2.对A的所有出边进行松弛，B的路径代价会被更新为5，C的路径代价会被更新为1。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>3.对B的所有出边进行松弛，D的路径代价会被更新为8。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>4.对C的所有出边进行松弛，D的路径代价不变。因为11大于8，不满足Relax 函数里面的判断条件。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>Relax实际上是“紧缩”出边终点上的顶点的路径代价，让路径代价&#20540;不断变小。通过模拟这样一个过程，我们发现找到了D的最短路径的路径代价&#20540;8。但我们没有记录这个相加边权&#20540;的路径是怎样走过来的。要记录路径，我们可以用一个哈希映射表，比如：unordered_map&lt;
+ Vertex* , Vertex* &gt; PathTree ;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>PathTree[pVertex2] = pVertex1 ; 表示设置pVertex1顶点的前驱路径顶点是pVertex2。完整的Relax操作不光是改进出边终点顶点的路径代价估计&#20540;，还会更新出边终点顶点的前驱顶点。完整的Relax操作C代码如下：</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<pre name="code" class="cpp">void Relax( Vertex * pVertex1 , Vertex * pVertex2 , int Weight , unordered_map&lt; Vertex* , Vertex* &gt;&amp; PathTree )
+{
+	int n = pVertex1-&gt;m_Cost + Weight ; 
+	If( n &lt; pVertex2-&gt;m_Cost )
+	{
+		pVertex2-&gt;m_Cost = n ; 
+PathTree[pVertex2 ] = pVertex1 ; 
+	}
+}
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>这个时候，我们再模拟上面的过程。就会发现PathTree记录了A达到D的最短路径。以D对象为key查找映射表会查到B对象，以B对象为key查找映射表会查到A对象。这个就是A到D的最短路径了。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>实际上，整个unordered_map&lt;Vertex* , Vertex* &gt; PathTree表示的是一个路径树。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>之前我们模拟的那4步过程，是人为地挑选顶点出来进行松弛，从而找到最短路径。Dijkstra其实就是一个挑选顶点出来松弛的一个算法，这个挑选过程使用贪心策略。OK，看下Dijkstra是怎样执行的。</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<pre name="code" class="cpp">Dijkstra
+{
+	遍历所有的图顶点
+		图顶点的路径估值初始化为一个很大的值，比如：0x0FFFFFFF
+		把所有的顶点都加入一个列表Q中
+	起始顶点的路径估值初始化为0
+	PathTree[起始顶点 ] = 0 ; // 起始顶点没有父节点
+
+	如果 Q列表 不为空的话 就一直做如下循环
+	{
+		在Q列表中选出一个路径估值最小的顶点v
+		对顶点v所有的出边进行Relax松弛操作
+	}
+
+}
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>Dijkstra的核心思想其实是非常简短的。说Dijkstra用了贪心策略，就是它会从列表Q中选出一个路径估&#20540;最小的顶点v进行Relax松弛。注意：这里的“选出”是这样的含义，在列表中找出一个路径估&#20540;最小的顶点，然后列表移除该顶点。Dijkstra的结束条件是把列表Q给选空了。也可以把结束条件修改一下，当选出了目的顶点时就终止。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>Dijkstra执行完后，会对整个图输出一个路径树。也就是PathTree表达的内容。这个路径树包括了起始顶点到其他顶点的最短路径。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>我的Dijkstra算法继承自GraphPathfinding类。GraphPathfinding作为基类主要是为了以后增加一些其他的路径搜索算法类。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px">&nbsp;</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>GraphPathfinding头文件</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<pre name="code" class="cpp">#pragma once
+
+#include &quot;Graph.h&quot;
+#include &lt;unordered_map&gt;
+using namespace  std ;
+
+/*
+	路径搜索结果
+*/
+struct Result
+{
+	// 路径树
+	unordered_map&lt; Vertex* , Vertex* &gt; PathTree ;
+
+};
+
+class GraphPathfinding
+{
+public:
+	GraphPathfinding( );
+	~GraphPathfinding( );
+
+public : 
+
+	virtual void Execute( const Graph&amp; Graph , const string&amp; VetexId ) = 0 ;
+
+};
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>Dijjkstra 类.h</span></p>
+<span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p></p>
+<pre name="code" class="cpp">#pragma once
+#include &quot;GraphPathfinding.h&quot;
+
+class Dijkstra : public GraphPathfinding 
+{
+public:
+	Dijkstra( );
+	~Dijkstra( );
+
+public:
+
+public : 
+
+	void Execute( const Graph&amp; Graph , const string&amp; VetexId ) override ;
+
+private:
+
+	// 抽出最小路径估值的顶点
+	Vertex* ExtractMin( vector&lt; Vertex* &gt;&amp; Q ) ;
+
+	// 松弛
+	void Relax( Vertex* v1 , Vertex* v2 , int Weight ) ;
+
+public : 
+
+	Result&amp; GetResult( ) { return m_Ret  ; }
+
+private : 
+
+	Result m_Ret ; 
+
+};
+</pre><br>
+<p></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>Dijkstra Cpp</span></p>
+<br>
+<p></p>
+<pre name="code" class="cpp">#include &quot;Dijkstra.h&quot;
+#include &lt;queue&gt;
+
+Dijkstra::Dijkstra( )
+{
+}
+
+Dijkstra::~Dijkstra( )
+{
+}
+
+void Dijkstra::Execute( const Graph&amp; Graph , const string&amp; VetexId  )
+{
+	m_Ret.PathTree.clear( ) ;
+
+	const auto&amp; Vertexes = Graph.GetVertexes( ) ; 
+	Vertex* pGvStart = Vertexes.find( VetexId )-&gt;second ; 
+	vector&lt; Vertex* &gt; Q ; 
+
+	// 初始化
+	for ( auto&amp; it : Vertexes )
+	{
+		it.second-&gt;m_Cost = 0x0FFFFFFF ;
+		Q.push_back( it.second ) ; 
+	}
+	m_Ret.PathTree[ pGvStart ] = 0 ;	//  起始顶点的前驱顶点为空
+	pGvStart-&gt;m_Cost = 0 ; 
+
+	for ( ; Q.size() &gt; 0 ; )
+	{
+		// 选出最小路径估计的顶点
+		auto v = ExtractMin( Q ) ;
+
+		// 对所有的出边进行“松弛”
+		const auto&amp; EO = v-&gt;GetEdgesOut( ) ; 
+		for (  auto&amp; it : EO )
+		{
+			Edge* pEdge = it.second ; 
+			Relax( v , pEdge-&gt;GetEndVertex( ) , pEdge-&gt;GetWeight() ) ;
+		}
+	}
+
+}
+
+Vertex* Dijkstra::ExtractMin( vector&lt; Vertex* &gt;&amp; Q )
+{
+	Vertex* Ret = 0 ; 
+
+	Ret = Q[ 0 ] ;
+	int pos = 0 ; 
+	for ( int i = 1 , size = Q.size( ) ; i &lt; size ; ++i )
+	{
+		if ( Ret-&gt;m_Cost &gt; Q[ i ]-&gt;m_Cost )
+		{
+			Ret = Q[ i ] ; 
+			pos = i ; 
+		}
+	}
+
+	Q.erase( Q.begin() + pos ) ;
+
+	return Ret ;
+
+}
+
+
+
+void Dijkstra::Relax( Vertex* v1 , Vertex* v2 , int Weight )
+{
+	int n = v1-&gt;m_Cost + Weight ; 
+	if ( n &lt; v2-&gt;m_Cost )
+	{
+		v2-&gt;m_Cost = n ; 
+
+		m_Ret.PathTree[ v2 ] = v1 ; 
+
+	}
+
+}
+</pre><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span>
+<p><span style="font-family:'Microsoft YaHei'; font-size:18px">　　我的Dijkstra选出最小路径估计的顶点的方法，用的是列表遍历。要优化Dijkstra的话，可以用优先级队列，终极优化是斐波那契堆。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="white-space:pre"></span><span style="font-family:'Microsoft YaHei'; font-size:18px; line-height:26px">　　</span>计算出了最短路径，就可以用Sequene动作序列串联MoveTo动作把行走的动画表现出来了。</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<h2><span style="font-family:Microsoft YaHei; font-size:18px">7.本文工程源代码下载</span></h2>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="white-space:pre"></span><span style="font-family:'Microsoft YaHei'; font-size:18px">　　由于实现代码比较多，我就不贴完了。直接发工程，大家自己去看吧。</span></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px"><br>
+</span></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px"><span style="white-space:pre"></span><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>整个cocos2d-x的项目比较大，我只上传Classes和Resources
+ 2个关键的文件夹。大家本地创建一个cocos2d-x的项目，然后覆盖掉这2个文件夹，应该就可以了。</span></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px"><br>
+</span></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px"><span style="white-space:pre"></span><span style="font-family:'Microsoft YaHei'; font-size:18px">　　</span>下载地址：<a target="_blank" target="_blank" href="http://download.csdn.net/detail/stevenkylelee/7723917">http://download.csdn.net/detail/stevenkylelee/7723917</a></span></span></p>
+<p><br>
+</p>
+<p><br>
+</p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px">　　有一些朋友说编译源代码不过。我的开发环境是：Cocos2d-x 3.2，VS2013。搭建为和我一样的环境试试。<span style="color:#cc0000">如果用VS2012编译，出现“error
+ C2338: The C&#43;&#43; Standard doesn't provide a hash for this type. (..\Classes\Graph\GraphPathfinding.cpp)”错误的话，请 在<span style="font-family:'Microsoft YaHei'; font-size:18px">Graph.h&nbsp;头文件加上一句：#include &lt;string&gt;</span></span></span><br>
+</span></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><span style="font-family:'Microsoft YaHei'; font-size:18px"><br>
+</span></span></p>
+<p><span style="font-family:Microsoft YaHei; font-size:18px"><br>
+</span></p>
+<p><br>
+</p>
+
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+<div class="bdsharebuttonbox" style="float: right;">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"  style="background-position:0 -52px !important"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"style="background-position:0 -104px !important"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"style="background-position:0 -260px !important"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网"style="background-position:0 -208px !important"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"style="background-position:0 -1612px !important" ></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+<!--192.168.100.35-->
+<ul class="article_next_prev">
+            <li class="prev_article"><span  onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='/stevenkylelee/article/details/38343985';">上一篇</span><a href="/stevenkylelee/article/details/38343985" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">Trie实践：一种比哈希表更快的数据结构</a></li>
+            <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='/stevenkylelee/article/details/38440663';">下一篇</span><a href="/stevenkylelee/article/details/38440663" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">Cocos2d-x 地图行走的实现2：SPFA算法</a></li>
+</ul>
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" ></script>
+<script type="text/javascript" id="bdshell_js"></script>
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+
+        <div id="digg" ArticleId="38408253">
+            <dl id="btnDigg" class="digg digg_disable">
+                <dt onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_ding'])">顶</dt>
+                <dd>3</dd>
+            </dl>
+            <dl id="btnBury" class="digg digg_disable">
+                <dt onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_cai'])">踩</dt>
+                <dd>1</dd>
+            </dl>
+        </div>
+</div>
+      <dl class="blog-associat-tag">
+        <dt>主题推荐</dt>
+        <dd>
+                <a href="http://www.csdn.net/tag/cocos2d-x" target="_blank" class="blog-tage-red" >cocos2d-x</a> 
+                <a href="http://www.csdn.net/tag/地图" target="_blank" class="blog-tage-red" >地图</a> 
+                <a href="http://www.csdn.net/tag/dijkstra" target="_blank" class="blog-tage-red" >dijkstra</a> 
+                <a href="http://www.csdn.net/tag/配置管理" target="_blank" class="blog-tage-red" >配置管理</a> 
+                <a href="http://www.csdn.net/tag/人工智能" target="_blank" class="blog-tage-red" >人工智能</a> 
+        </dd>
+    </dl> 
+
+
+<dl class="blog-ass-articl tracking-ad"  data-mod="popu_36" id="res-relatived"> 
+     <dt><span>猜你在找</span></dt>    
+</dl>
+
+<script type="text/javascript">
+    var searchtitletags = 'Cocos2d-x 地图行走的实现1：图论与Dijkstra算法' + ',' + 'cocos2d-x,地图,dijkstra,配置管理,人工智能';
+    searchService({
+        index: 'blog',
+        query: searchtitletags,
+        from: 10,
+        size: 10,
+        appendTo: '#res-relatived',
+        url: 'recommend',
+        his: 2,
+        client: "blog_cf_enhance",
+        tmpl: '<dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;"><a href="#{ url }" title="#{ title }" strategy="#{ strategy }">#{ title }</a></dd>'
+    });
+
+ </script>   
+
+
+    <div id="ad_cen">
+   
+          <script type="text/javascript">
+              new Ad(4, 'ad_cen');
+          </script>
+    </div>
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list">
+    </div>
+    <div id="comment_bar">
+    </div>
+    <div id="comment_form">
+    </div>
+
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '38408253';
+    var commentscount = 18;
+    var islock = false
+</script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/comment.js"></script>
+    <div id="ad_bot">
+    </div>
+    <script type="text/javascript">
+    new Ad(5, 'ad_bot');
+    </script>
+<div id="report_dialog">
+</div>
+
+<div id="d-top"  style="bottom:60px;">
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="http://static.blog.csdn.net/images/blog-icon-reply.png" alt="快速回复">
+        </a>    
+
+    <a id="d-top-a" class="btn btn-top backtop"  style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])" style="">         
+         <img src="http://static.blog.csdn.net/images/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);
+        
+        /*
+        if($("#comment_content").length>0)
+        {
+            $("#quick-reply").show();
+
+            $("#quick-reply").click(function(){
+                setEditorFocus();
+            });
+        }       
+     
+        var d_top = $('#d-top-a');
+
+        document.onscroll = function ()
+        {
+            var scrTop = (document.body.scrollTop || document.documentElement.scrollTop);
+            if (scrTop > 500)
+            {
+                d_top.show();
+            } else
+            {
+                d_top.hide();
+            }
+        }
+        $('#d-top-a').click(function ()
+        {
+            scrollTo(0, 0);
+            this.blur();
+            return false;
+        });
+        */
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+<div class="tag_list">
+    <h5>
+        <a href="http://www.csdn.net/tag/" target="_blank">核心技术类目</a></h5>
+    <div class="classify">
+<a title="全部主题" href="http://www.csdn.net/tag" target="_blank" onclick="LogClickCount(this,336);">全部主题</a>
+<a title="Hadoop" href="http://g.csdn.net/5272865" target="_blank" onclick="LogClickCount(this,336);">Hadoop</a>
+<a title="AWS" href="http://g.csdn.net/5272866" target="_blank" onclick="LogClickCount(this,336);">AWS</a>
+<a title="移动游戏" href="http://g.csdn.net/5272870" target="_blank" onclick="LogClickCount(this,336);">移动游戏</a>
+<a title="Java" href="http://g.csdn.net/5272871" target="_blank" onclick="LogClickCount(this,336);">Java</a>
+<a title="Android" href="http://g.csdn.net/5272872" target="_blank" onclick="LogClickCount(this,336);">Android</a>
+<a title="iOS" href="http://g.csdn.net/5272873" target="_blank" onclick="LogClickCount(this,336);">iOS</a>
+<a title="Swift" href="http://g.csdn.net/5272868" target="_blank" onclick="LogClickCount(this,336);">Swift</a>
+<a title="智能硬件" href="http://g.csdn.net/5272869" target="_blank" onclick="LogClickCount(this,336);">智能硬件</a>
+<a title="Docker" href="http://g.csdn.net/5272867" target="_blank" onclick="LogClickCount(this,336);">Docker</a>
+<a title="OpenStack" href="http://g.csdn.net/5272925" target="_blank" onclick="LogClickCount(this,336);">OpenStack</a>
+<a title="VPN" href="http://www.csdn.net/tag/vpn" target="_blank" onclick="LogClickCount(this,336);">VPN</a>
+<a title="Spark" href="http://g.csdn.net/5272924" target="_blank" onclick="LogClickCount(this,336);">Spark</a>
+<a title="ERP" href="http://www.csdn.net/tag/erp" target="_blank" onclick="LogClickCount(this,336);">ERP</a>
+<a title="IE10" href="http://www.csdn.net/tag/ie10" target="_blank" onclick="LogClickCount(this,336);">IE10</a>
+<a title="Eclipse" href="http://www.csdn.net/tag/eclipse" target="_blank" onclick="LogClickCount(this,336);">Eclipse</a>
+<a title="CRM" href="http://www.csdn.net/tag/crm" target="_blank" onclick="LogClickCount(this,336);">CRM</a>
+<a title="JavaScript" href="http://www.csdn.net/tag/javascript" target="_blank" onclick="LogClickCount(this,336);">JavaScript</a>
+<a title="数据库" href="http://www.csdn.net/tag/数据库" target="_blank" onclick="LogClickCount(this,336);">数据库</a>
+<a title="Ubuntu" href="http://www.csdn.net/tag/ubuntu" target="_blank" onclick="LogClickCount(this,336);">Ubuntu</a>
+<a title="NFC" href="http://www.csdn.net/tag/nfc" target="_blank" onclick="LogClickCount(this,336);">NFC</a>
+<a title="WAP" href="http://www.csdn.net/tag/wap" target="_blank" onclick="LogClickCount(this,336);">WAP</a>
+<a title="jQuery" href="http://www.csdn.net/tag/jquery" target="_blank" onclick="LogClickCount(this,336);">jQuery</a>
+<a title="BI" href="http://www.csdn.net/tag/bi" target="_blank" onclick="LogClickCount(this,336);">BI</a>
+<a title="HTML5" href="http://www.csdn.net/tag/html5" target="_blank" onclick="LogClickCount(this,336);">HTML5</a>
+<a title="Spring" href="http://www.csdn.net/tag/spring" target="_blank" onclick="LogClickCount(this,336);">Spring</a>
+<a title="Apache" href="http://www.csdn.net/tag/apache" target="_blank" onclick="LogClickCount(this,336);">Apache</a>
+<a title=".NET" href="http://www.csdn.net/tag/.net" target="_blank" onclick="LogClickCount(this,336);">.NET</a>
+<a title="API" href="http://www.csdn.net/tag/api" target="_blank" onclick="LogClickCount(this,336);">API</a>
+<a title="HTML" href="http://www.csdn.net/tag/html" target="_blank" onclick="LogClickCount(this,336);">HTML</a>
+<a title="SDK" href="http://www.csdn.net/tag/sdk" target="_blank" onclick="LogClickCount(this,336);">SDK</a>
+<a title="IIS" href="http://www.csdn.net/tag/iis" target="_blank" onclick="LogClickCount(this,336);">IIS</a>
+<a title="Fedora" href="http://www.csdn.net/tag/fedora" target="_blank" onclick="LogClickCount(this,336);">Fedora</a>
+<a title="XML" href="http://www.csdn.net/tag/xml" target="_blank" onclick="LogClickCount(this,336);">XML</a>
+<a title="LBS" href="http://www.csdn.net/tag/lbs" target="_blank" onclick="LogClickCount(this,336);">LBS</a>
+<a title="Unity" href="http://www.csdn.net/tag/unity" target="_blank" onclick="LogClickCount(this,336);">Unity</a>
+<a title="Splashtop" href="http://www.csdn.net/tag/splashtop" target="_blank" onclick="LogClickCount(this,336);">Splashtop</a>
+<a title="UML" href="http://www.csdn.net/tag/uml" target="_blank" onclick="LogClickCount(this,336);">UML</a>
+<a title="components" href="http://www.csdn.net/tag/components" target="_blank" onclick="LogClickCount(this,336);">components</a>
+<a title="Windows Mobile" href="http://www.csdn.net/tag/windowsmobile" target="_blank" onclick="LogClickCount(this,336);">Windows Mobile</a>
+<a title="Rails" href="http://www.csdn.net/tag/rails" target="_blank" onclick="LogClickCount(this,336);">Rails</a>
+<a title="QEMU" href="http://www.csdn.net/tag/qemu" target="_blank" onclick="LogClickCount(this,336);">QEMU</a>
+<a title="KDE" href="http://www.csdn.net/tag/kde" target="_blank" onclick="LogClickCount(this,336);">KDE</a>
+<a title="Cassandra" href="http://www.csdn.net/tag/cassandra" target="_blank" onclick="LogClickCount(this,336);">Cassandra</a>
+<a title="CloudStack" href="http://www.csdn.net/tag/cloudstack" target="_blank" onclick="LogClickCount(this,336);">CloudStack</a>
+<a title="FTC" href="http://www.csdn.net/tag/ftc" target="_blank" onclick="LogClickCount(this,336);">FTC</a>
+<a title="coremail" href="http://www.csdn.net/tag/coremail" target="_blank" onclick="LogClickCount(this,336);">coremail</a>
+<a title="OPhone " href="http://www.csdn.net/tag/ophone " target="_blank" onclick="LogClickCount(this,336);">OPhone </a>
+<a title="CouchBase" href="http://www.csdn.net/tag/couchbase" target="_blank" onclick="LogClickCount(this,336);">CouchBase</a>
+<a title="云计算" href="http://www.csdn.net/tag/云计算" target="_blank" onclick="LogClickCount(this,336);">云计算</a>
+<a title="iOS6" href="http://www.csdn.net/tag/iOS6" target="_blank" onclick="LogClickCount(this,336);">iOS6</a>
+<a title="Rackspace " href="http://www.csdn.net/tag/rackspace " target="_blank" onclick="LogClickCount(this,336);">Rackspace </a>
+<a title="Web App" href="http://www.csdn.net/tag/webapp" target="_blank" onclick="LogClickCount(this,336);">Web App</a>
+<a title="SpringSide" href="http://www.csdn.net/tag/springside" target="_blank" onclick="LogClickCount(this,336);">SpringSide</a>
+<a title="Maemo" href="http://www.csdn.net/tag/maemo" target="_blank" onclick="LogClickCount(this,336);">Maemo</a>
+<a title="Compuware" href="http://www.csdn.net/tag/compuware" target="_blank" onclick="LogClickCount(this,336);">Compuware</a>
+<a title="大数据" href="http://www.csdn.net/tag/大数据" target="_blank" onclick="LogClickCount(this,336);">大数据</a>
+<a title="aptech" href="http://www.csdn.net/tag/aptech" target="_blank" onclick="LogClickCount(this,336);">aptech</a>
+<a title="Perl" href="http://www.csdn.net/tag/perl" target="_blank" onclick="LogClickCount(this,336);">Perl</a>
+<a title="Tornado" href="http://www.csdn.net/tag/tornado" target="_blank" onclick="LogClickCount(this,336);">Tornado</a>
+<a title="Ruby" href="http://www.csdn.net/tag/ruby" target="_blank" onclick="LogClickCount(this,336);">Ruby</a>
+<a title="Hibernate" href="http://www.csdn.net/hibernate" target="_blank" onclick="LogClickCount(this,336);">Hibernate</a>
+<a title="ThinkPHP" href="http://www.csdn.net/tag/thinkphp" target="_blank" onclick="LogClickCount(this,336);">ThinkPHP</a>
+<a title="HBase" href="http://www.csdn.net/tag/hbase" target="_blank" onclick="LogClickCount(this,336);">HBase</a>
+<a title="Pure" href="http://www.csdn.net/tag/pure" target="_blank" onclick="LogClickCount(this,336);">Pure</a>
+<a title="Solr" href="http://www.csdn.net/tag/solr" target="_blank" onclick="LogClickCount(this,336);">Solr</a>
+<a title="Angular" href="http://www.csdn.net/tag/angular" target="_blank" onclick="LogClickCount(this,336);">Angular</a>
+<a title="Cloud Foundry" href="http://www.csdn.net/tag/cloudfoundry" target="_blank" onclick="LogClickCount(this,336);">Cloud Foundry</a>
+<a title="Redis" href="http://www.csdn.net/tag/redis" target="_blank" onclick="LogClickCount(this,336);">Redis</a>
+<a title="Scala" href="http://www.csdn.net/tag/scala" target="_blank" onclick="LogClickCount(this,336);">Scala</a>
+<a title="Django" href="http://www.csdn.net/tag/django" target="_blank" onclick="LogClickCount(this,336);">Django</a>
+<a title="Bootstrap" href="http://www.csdn.net/tag/bootstrap" target="_blank" onclick="LogClickCount(this,336);">Bootstrap</a>
+    </div>
+</div>
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    $.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });
+        },200);  
+        
+        setTimeout(function(){
+            $("a img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm" frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }    
+
+</script>
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+            <div id="side">
+    <div class="side">
+<div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/StevenKyleLee" target="_blank">
+    <img src="http://avatar.csdn.net/2/0/B/1_stevenkylelee.jpg" title="访问我的空间" style="max-width:90%"/>
+    </a>
+    <br />
+    <span><a href="http://my.csdn.net/StevenKyleLee" class="user_name" target="_blank">StevenKyleLee</a></span>
+</div>
+<div class="interact">
+<a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_guanzhu'])"></a>
+
+ <a href="javascript:void(0);" class="letter"  title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=StevenKyleLee','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                <div id="bms_box">
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>59851次</span></li>
+    <li>积分：<span>974</span> </li>    
+    <li >等级： <span style="position:relative;display:inline-block;z-index:1" >
+            <img src="http://csdnimg.cn/jifen/images/xunzhang/jianzhang/blog3.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：974 </div>
+        </span>  </li>
+    <li>排名：<span>第18822名</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>19篇</span></li>
+    <li>转载：<span>0篇</span></li>
+    <li>译文：<span>0篇</span></li>
+    <li>评论：<span>211条</span></li>
+</ul>
+</ul>
+</div>
+
+
+
+
+<div id="custom_column_36566433" class="panel">
+<ul class="panel_head"><span>联系方式</span></ul>
+<ul class="panel_body">
+
+E-Mail：scorpion2007@qq.com <br>
+<br>
+
+</ul>
+</div><div class="panel" id="panel_Search">
+    <ul class="panel_head"><span>文章搜索</span></ul>
+    <ul class="panel_body">
+        <form id="frmSearch" action="http://so.csdn.net/search" class="form_search" target="_blank">
+        <span><input id="inputSearch" type="text" class="blogsearch" title="请输入关键字" /></span>
+        <input id="btnSubmit" type="button" value="搜索" title="search in blog" />
+        <input type="hidden" name="q" id="inputQ" />
+        <input type="hidden" name="t" value="blog" />
+        <a id="btnSearchBlog" target="_blank"></a>
+        </form>
+    </ul>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $("#btnSubmit").click(function () {           
+            search();
+        });
+
+        $("#frmSearch").submit(function () {
+            search();
+            return false;
+        });
+
+        function search()
+        {
+            var url = "http://so.csdn.net/so/search/s.do?q=" + encodeURIComponent($("#inputSearch").val()) + "&u=" + username + "&t=blog";
+            window.location.href = url;
+        }   
+    });
+</script>
+<div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">
+             <li>
+                <a href="http://blog.csdn.net/stevenkylelee/article/category/786802" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">C#</a><span>(5)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/stevenkylelee/article/category/786801" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">C/C++</a><span>(10)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/stevenkylelee/article/category/2429945" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">模式识别</a><span>(3)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/stevenkylelee/article/category/2430059" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Cocos2d-x</a><span>(4)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/stevenkylelee/article/category/2430063" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">图形效果实践</a><span>(2)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/stevenkylelee/article/category/2430081" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">算法实践</a><span>(10)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/stevenkylelee/article/category/2567303" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">个人项目总结</a><span>(1)</span>
+            </li>
+</ul>
+</div><div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list">
+<!--归档统计-->
+<li><a href="http://blog.csdn.net/stevenkylelee/article/month/2014/09">2014年09月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/stevenkylelee/article/month/2014/08">2014年08月</a><span>(4)</span></li><li><a href="http://blog.csdn.net/stevenkylelee/article/month/2014/07">2014年07月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/stevenkylelee/article/month/2012/12">2012年12月</a><span>(4)</span></li><li><a href="http://blog.csdn.net/stevenkylelee/article/month/2012/07">2012年07月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/stevenkylelee/article/month/2012/06">2012年06月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/stevenkylelee/article/month/2012/02">2012年02月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/stevenkylelee/article/month/2011/11">2011年11月</a><span>(3)</span></li>
+</div>
+</ul>
+</div>
+<div id="hotarticls" class="panel">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="/stevenkylelee/article/details/8270069" title="验证码识别实践2：自己动手C#实现，对CSDN资源上传验证码识别率100%，久游网登陆90%">验证码识别实践2：自己动手C#实现，对CSDN资源上传验证码识别率100%，久游网登陆90%</a><span>(11971)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/8263890" title="验证码识别实践1：自己动手C#实现">验证码识别实践1：自己动手C#实现</a><span>(11766)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/7605836" title="寻路算法实践2">寻路算法实践2</a><span>(4624)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/8308772" title="验证码识别实践3：自己动手C#实现，颜色差异法去除干扰线">验证码识别实践3：自己动手C#实现，颜色差异法去除干扰线</a><span>(4047)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/6973471" title="简单的图像去噪的实现">简单的图像去噪的实现</a><span>(3462)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/7246138" title="寻路算法实践1">寻路算法实践1</a><span>(3224)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/39318543" title="Cocos2d-x 类COC手游与RTS（即时战略）游戏的编程实践总结">Cocos2d-x 类COC手游与RTS（即时战略）游戏的编程实践总结</a><span>(2755)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/8434552" title="飞越星空屏保实现：3D数学之透视变换">飞越星空屏保实现：3D数学之透视变换</a><span>(2104)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/38408253" title="Cocos2d-x 地图行走的实现1：图论与Dijkstra算法">Cocos2d-x 地图行走的实现1：图论与Dijkstra算法</a><span>(2049)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/38456419" title="Cocos2d-x 地图行走的实现3：A*算法">Cocos2d-x 地图行走的实现3：A*算法</a><span>(1966)</span>
+</li>
+</ul>
+</div>
+<div id="hotarticls2" class="panel">
+<ul class="panel_head"><span>评论排行</span></ul>
+<ul class="panel_body itemlist">
+<li>
+<a href="/stevenkylelee/article/details/8263890" title="验证码识别实践1：自己动手C#实现">验证码识别实践1：自己动手C#实现</a><span>(49)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/8270069" title="验证码识别实践2：自己动手C#实现，对CSDN资源上传验证码识别率100%，久游网登陆90%">验证码识别实践2：自己动手C#实现，对CSDN资源上传验证码识别率100%，久游网登陆90%</a><span>(45)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/39318543" title="Cocos2d-x 类COC手游与RTS（即时战略）游戏的编程实践总结">Cocos2d-x 类COC手游与RTS（即时战略）游戏的编程实践总结</a><span>(32)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/8308772" title="验证码识别实践3：自己动手C#实现，颜色差异法去除干扰线">验证码识别实践3：自己动手C#实现，颜色差异法去除干扰线</a><span>(24)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/38408253" title="Cocos2d-x 地图行走的实现1：图论与Dijkstra算法">Cocos2d-x 地图行走的实现1：图论与Dijkstra算法</a><span>(18)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/8434552" title="飞越星空屏保实现：3D数学之透视变换">飞越星空屏保实现：3D数学之透视变换</a><span>(15)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/7246138" title="寻路算法实践1">寻路算法实践1</a><span>(11)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/38456419" title="Cocos2d-x 地图行走的实现3：A*算法">Cocos2d-x 地图行走的实现3：A*算法</a><span>(6)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/6973471" title="简单的图像去噪的实现">简单的图像去噪的实现</a><span>(5)</span>
+</li>
+<li>
+<a href="/stevenkylelee/article/details/38440663" title="Cocos2d-x 地图行走的实现2：SPFA算法">Cocos2d-x 地图行走的实现2：SPFA算法</a><span>(5)</span>
+</li>
+</ul>
+</div>
+<div id="homepageArticles" class="panel tracking-ad" data-mod="popu_4">
+<ul class="panel_head"><span>推荐文章</span></ul>
+<ul class="panel_body" id="ad_commend"></ul>
+</div>
+<script type="text/javascript">
+ new Ad(12, 'ad_commend');
+</script><div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="/stevenkylelee/article/details/38456419#comments">Cocos2d-x 地图行走的实现3：A*算法</a>
+    <p style="margin:0px;"><a href="/xufeng0991" class="user_name">xufeng0991</a>:
+学习了，点赞。其中，很多基础的东西需要补习~~~
+    </p>
+    </li>
+    <li>
+   
+         <a href="/stevenkylelee/article/details/39318543#comments">Cocos2d-x 类COC手游与RTS（即时战略）游戏的编程实践总结</a>
+    <p style="margin:0px;"><a href="/coldice319" class="user_name">coldice319</a>:
+目前正在往这方向发展，是否可以把源码分享学习一下534218502@qq.com
+    </p>
+    </li>
+    <li>
+   
+         <a href="/stevenkylelee/article/details/39318543#comments">Cocos2d-x 地图行走的实现3：A*算法</a>
+    <p style="margin:0px;"><a href="/StevenKyleLee" class="user_name">StevenKyleLee</a>:
+@wensixing:有。Dijkstra算是一种。Dijkstra是单源最短路径算法，该算法计算从...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/stevenkylelee/article/details/39318543#comments">Cocos2d-x 地图行走的实现3：A*算法</a>
+    <p style="margin:0px;"><a href="/wensixing" class="user_name">wensixing</a>:
+不知道有没有基于多目标的寻路算法，毕竟地图上有那么多的目标，必须选择一个最近的吧。。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/stevenkylelee/article/details/6973471#comments">简单的图像去噪的实现</a>
+    <p style="margin:0px;"><a href="/zyings" class="user_name">zyings</a>:
+6个积分下了你的程序用你的图片处理出来的结果跟你下面那个不一样啊，连通分量大了就都切没了连通分量小了...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/stevenkylelee/article/details/38408253#comments">Cocos2d-x 地图行走的实现1：图论与Dijkstra算法</a>
+    <p style="margin:0px;"><a href="/yxd000000" class="user_name">yxd000000</a>:
+#include &quot;cocostudio/CocoStudio.h&quot;#include &quot;ui/Coc...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/stevenkylelee/article/details/38408253#comments">Cocos2d-x 地图行走的实现1：图论与Dijkstra算法</a>
+    <p style="margin:0px;"><a href="/yxd000000" class="user_name">yxd000000</a>:
+您这个class里面好多是没有的吧，我这运行不了啊
+    </p>
+    </li>
+    <li>
+   
+         <a href="/stevenkylelee/article/details/8308772#comments">验证码识别实践3：自己动手C#实现，颜色差异法去除干扰线</a>
+    <p style="margin:0px;"><a href="/test02x" class="user_name">test02x</a>:
+对于比较小的文字，如6x8像素大小，识别率很低，因为一个噪点就可以在文字区域内造成很大的影响。这如何...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/stevenkylelee/article/details/38343985#comments">Trie实践：一种比哈希表更快的数据结构</a>
+    <p style="margin:0px;"><a href="/lzy18lzy" class="user_name">lzy18lzy</a>:
+Trie 快肯定是快，空间损耗会比较大
+    </p>
+    </li>
+    <li>
+   
+         <a href="/stevenkylelee/article/details/38343985#comments">验证码识别实践3：自己动手C#实现，颜色差异法去除干扰线</a>
+    <p style="margin:0px;"><a href="/jackyuan99" class="user_name">jackyuan99</a>:
+这三篇文章也已经发了很久了，不知道LZ还经常过来看看吗。可能的话请发份源码学习下，谢谢jackyua...
+    </p>
+    </li>
+</ul>
+</div>
+    </div>
+    <div class="clear">
+    </div>
+</div>
+
+            <div class="clear">
+            </div>
+        </div>
+        
+
+<script type="text/javascript" src="http://csdnimg.cn/rabbit/cnick/cnick.js"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/newblog.min.js"></script>
+
+
+<script type="text/javascript" src="http://medal.blog.csdn.net/showblogmedal.ashx?blogid=1025983"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/JavaScript1.js"></script>
+
+    <script type="text/javascript" src="http://passport.csdn.net/content/loginbox/login.js"></script>
+<script type="text/javascript">document.write("<img src=http://counter.csdn.net/pv.aspx?id=24 border=0 width=0 height=0>");</script>
+<script type="text/javascript" src="http://www.csdn.net/ui/scripts/Csdn/counter.js"></script>
+<script type="text/javascript" src="http://ad.csdn.net/scripts/ad-blog.js"></script>
+<script type="text/javascript" src="http://zz.csdn.net/js/count.js"></script>
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a>"
+                    + "<a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+    });
+</script>
+
+    </div>
+      <!--new top-->
+    
+    <script id="csdn-toolbar-id" btnId="header_notice_num" wrapId="note1" count="5" subCount="5" type="text/javascript" src="http://static.csdn.net/public/common/toolbar/js/toolbar.js"></script>     <!--new top-->
+   
+    <link href="http://csdnimg.cn/comm_ask/css/ask_float_block.css" type="text/css" rel="stylesheet" />
+    <script language='JavaScript' type='text/javascript' src='http://csdnimg.cn/comm_ask/js/libs/wmd.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://csdnimg.cn/comm_ask/js/libs/showdown.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://csdnimg.cn/comm_ask/js/libs/prettify.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://csdnimg.cn/comm_ask/js/apps/ask_float_block.js'></script>
+
+</body>
+</html>

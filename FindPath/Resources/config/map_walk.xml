@@ -1,0 +1,15 @@
+<Graph>
+    <Vertexes>
+        <Vertex Id="938" x="505.957" y="358.936"/>
+        <Vertex Id="721" x="411.113" y="206.187"/>
+        <Vertex Id="64" x="599.803" y="267.086"/>
+    </Vertexes>
+    <Edges>
+        <Edge StartVertexId="938" EndVertexId="64" Weight="131"/>
+        <Edge StartVertexId="938" EndVertexId="721" Weight="179"/>
+        <Edge StartVertexId="721" EndVertexId="64" Weight="198"/>
+        <Edge StartVertexId="721" EndVertexId="938" Weight="179"/>
+        <Edge StartVertexId="64" EndVertexId="721" Weight="198"/>
+        <Edge StartVertexId="64" EndVertexId="938" Weight="131"/>
+    </Edges>
+</Graph>
