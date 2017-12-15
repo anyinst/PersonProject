@@ -41,7 +41,28 @@ bool CompressRes::Compress()
         string dirPath = _rootPath + "/" + (*it);
         
         FILE *addSrcOpenFile = fopen(resCompressPath.c_str(),"a+");
-        this->compressFiles(dirPath.c_str(), addSrcOpenFile, (*it).c_str());
+        
+        bool isDir = true;
+        struct dirent *dirp;
+        DIR* dir = opendir(dirPath.c_str());
+        if(dir == NULL)
+        {
+            isDir = false;
+        }
+        else
+        {
+            closedir(dir);
+        }
+        
+        if(isDir)
+        {
+            this->compressDir(dirPath.c_str(), addSrcOpenFile, (*it).c_str());
+        }
+        else
+        {
+            this->compressFile(dirPath.c_str(), addSrcOpenFile, (*it).c_str());
+        }
+        
         fclose(addSrcOpenFile);
     }
     
@@ -66,7 +87,7 @@ bool CompressRes::DeCompress(const char *compressPath, const char *destWritePath
         {
             break;
         }
-		COMPRESS_LOG("CompressRes::DeCompress = %s\n", filePath);
+        COMPRESS_LOG("CompressRes::DeCompress = %s\n", filePath);
         
         int fileConentLen = 0;
         if (fread(&fileConentLen, sizeof(unsigned int), 1, decompressFile) == 0)
@@ -95,42 +116,44 @@ bool CompressRes::DeCompress(const char *compressPath, const char *destWritePath
 
 bool  CompressRes::DeCompress(unsigned char *fileContent, long fileSize, const char *destWritePath)
 {
-	long curSize = 0;
-	unsigned char *curPos = fileContent;
-	while (true)
-	{
-		int pathLen = 0;
-		memcpy(&pathLen, curPos, sizeof(unsigned int));
-		curPos = curPos + sizeof(unsigned int);
-
-		char *filePath = (char *)malloc(pathLen);
-		snprintf(filePath, pathLen, "%s", curPos);
-		curPos = curPos + pathLen;
-		COMPRESS_LOG("CompressRes::DeCompress = %s\n", filePath);
-
-		int fileConentLen = 0;
-		memcpy(&fileConentLen, curPos, sizeof(unsigned int));
-		curPos = curPos + sizeof(unsigned int);
-
-		char *fileContentBuf = (char*)malloc(fileConentLen);
-		memcpy(fileContentBuf, curPos, fileConentLen);
-		curPos = curPos + fileConentLen;
-		
-		char fileWritePath[1024] = { 0 };
-		sprintf(fileWritePath, "%s%s", destWritePath, filePath);
-		FILE *newFile;
-		createFile(fileWritePath, &newFile);
-		fwrite(fileContentBuf, fileConentLen, 1, newFile);
-		fclose(newFile);
-
-		if (curPos - fileContent >= fileSize)
-		{
-			break;
-		}
-	}
+    long curSize = 0;
+    unsigned char *curPos = fileContent;
+    while (true)
+    {
+        int pathLen = 0;
+        memcpy(&pathLen, curPos, sizeof(unsigned int));
+        curPos = curPos + sizeof(unsigned int);
+        
+        char *filePath = (char *)malloc(pathLen);
+        snprintf(filePath, pathLen, "%s", curPos);
+        curPos = curPos + pathLen;
+        COMPRESS_LOG("CompressRes::DeCompress = %s\n", filePath);
+        
+        int fileConentLen = 0;
+        memcpy(&fileConentLen, curPos, sizeof(unsigned int));
+        curPos = curPos + sizeof(unsigned int);
+        
+        char *fileContentBuf = (char*)malloc(fileConentLen);
+        memcpy(fileContentBuf, curPos, fileConentLen);
+        curPos = curPos + fileConentLen;
+        
+        char fileWritePath[1024] = { 0 };
+        sprintf(fileWritePath, "%s%s", destWritePath, filePath);
+        FILE *newFile;
+        createFile(fileWritePath, &newFile);
+        fwrite(fileContentBuf, fileConentLen, 1, newFile);
+        fclose(newFile);
+        
+        if (curPos - fileContent >= fileSize)
+        {
+            break;
+        }
+    }
+    
+    return true;
 }
 
-void CompressRes::compressFiles(const char *sourceDirPath, FILE *destCompressFile, const char *sourceDirName)
+void CompressRes::compressDir(const char *sourceDirPath, FILE *destCompressFile, const char *sourceDirName)
 {
     struct dirent *dirp;
     DIR* dir = opendir(sourceDirPath);
@@ -142,26 +165,27 @@ void CompressRes::compressFiles(const char *sourceDirPath, FILE *destCompressFil
                 continue;
             }
             
+            // 全路径
             char tempPath[1024] = {0};
             sprintf(tempPath, "%s/%s", sourceDirPath, dirp->d_name);
             
+            // 获取sourceDirName开头的相对路径
             char dirNameBuf[1024] = {0};
             sprintf(dirNameBuf, "/%s/", sourceDirName);
-            
             char filePath[1024] = {0};
             getRelativeDirPath(tempPath, dirNameBuf, filePath);
             
-			COMPRESS_LOG("CompressRes  %s\n", filePath);
+            COMPRESS_LOG("CompressRes  %s\n", filePath);
             unsigned int pathLen = strlen(filePath) + 1;  // +1表示写入末尾的\0
             if (fwrite(&pathLen, sizeof(unsigned int), 1, destCompressFile) != 1) // 写入文件路径长度
             {
-				COMPRESS_LOG("pathLen write error");
+                COMPRESS_LOG("pathLen write error");
                 break;
             }
             
             if (fwrite(filePath, 1, pathLen, destCompressFile) != pathLen)  // 写入文件路径
             {
-				COMPRESS_LOG("tempPath write error");
+                COMPRESS_LOG("tempPath write error");
                 break;
             }
             
@@ -179,13 +203,13 @@ void CompressRes::compressFiles(const char *sourceDirPath, FILE *destCompressFil
             // 写入文件数据大小
             if (fwrite(&fileContentLen, sizeof(unsigned int), 1, destCompressFile) != 1)
             {
-				COMPRESS_LOG("fileContentLen write error");
+                COMPRESS_LOG("fileContentLen write error");
             }
             
             // 写入文件数据
             if (fwrite(contentBuf, fileContentLen, 1, destCompressFile) != 1)
             {
-				COMPRESS_LOG("contentBuf write error");
+                COMPRESS_LOG("contentBuf write error");
             }
             
             free(contentBuf);
@@ -195,12 +219,52 @@ void CompressRes::compressFiles(const char *sourceDirPath, FILE *destCompressFil
             {
                 char tempPath[1024] = {0};
                 sprintf(tempPath, "%s/%s", sourceDirPath, dirp->d_name);
-                this->compressFiles(tempPath, destCompressFile, sourceDirName);
+                this->compressDir(tempPath, destCompressFile, sourceDirName);
             }
         }
     }
     
     closedir(dir);
+}
+
+void CompressRes::compressFile(const char *filePath, FILE *destCompressFile, const char *fileName)
+{
+    unsigned int pathLen = strlen(fileName) + 1;  // +1表示写入末尾的\0
+    if (fwrite(&pathLen, sizeof(unsigned int), 1, destCompressFile) != 1) // 写入文件路径长度
+    {
+        COMPRESS_LOG("pathLen write error");
+    }
+    
+    if (fwrite(fileName, 1, pathLen, destCompressFile) != pathLen)  // 写入文件路径
+    {
+        COMPRESS_LOG("tempPath write error");
+    }
+    COMPRESS_LOG("CompressRes  %s\n", fileName);
+    
+    unsigned int fileContentLen = 0;
+    char *contentBuf = NULL;
+    if(isTxtFileType(fileName)) // txt type
+    {
+        contentBuf = readTxtFile((char*)filePath, fileContentLen);
+    }
+    else
+    {
+        contentBuf = readBinaryFile((char*)filePath, fileContentLen);
+    }
+    
+    // 写入文件数据大小
+    if (fwrite(&fileContentLen, sizeof(unsigned int), 1, destCompressFile) != 1)
+    {
+        COMPRESS_LOG("fileContentLen write error");
+    }
+    
+    // 写入文件数据
+    if (fwrite(contentBuf, fileContentLen, 1, destCompressFile) != 1)
+    {
+        COMPRESS_LOG("contentBuf write error");
+    }
+    
+    free(contentBuf);
 }
 
 char *CompressRes::readBinaryFile(char* fname, unsigned int &size)
@@ -227,7 +291,7 @@ char *CompressRes::readTxtFile(char *fname, unsigned int &size)
     char txt[1000];
     int filesize;
     if ((fp=fopen(fname,"r"))==NULL){
-		COMPRESS_LOG("打开文件%s错误\n",fname);
+        COMPRESS_LOG("打开文件%s错误\n",fname);
         return NULL;
     }
     
@@ -273,7 +337,7 @@ bool CompressRes::createFile(char *filepath, FILE **newFILE)
                 if(mkdir(dirPath, 0777) != 0)
                 {
                     //创建失败
-					COMPRESS_LOG("mkdir fail : %s", dirPath);
+                    COMPRESS_LOG("mkdir fail : %s", dirPath);
                     return false;
                 }
             }
@@ -334,3 +398,4 @@ void CompressRes::getRelativeDirPath(char *dirPath, char *subDirPath, char *outP
 }
 
 #endif
+

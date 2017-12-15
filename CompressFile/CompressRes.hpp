@@ -5,28 +5,6 @@
 //  Created by jlb on 2017/12/4.
 //
 
-#if !defined(_WIN32)
-
-#ifndef CompressRes_hpp
-#define CompressRes_hpp
-
-#include <string>
-#include <vector>
-
-#if defined(ANDROID)
-
-#include "android/log.h"
-
-#define  LOG_TAG    "CompressRes-log"
-#define  COMPRESS_LOG(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-
-#elif defined(__APPLE__)
-
-#define  COMPRESS_LOG(...)  printf(__VA_ARGS__)
-
-#endif
-
-using namespace std;
 /*
  * 压缩文件具体用法：
  * CompressRes tt;
@@ -46,6 +24,7 @@ using namespace std;
 */
 
 /*
+ * 解压缩具体方法
  * #if CC_TARGET_PLATFORM == CC_PLATFORM_IOS
  * bool firstExecute = UserDefault::getInstance()->getBoolForKey("firstExecute", false);
  * if (firstExecute == false)
@@ -71,6 +50,29 @@ using namespace std;
  * #endif
 */
 
+#if !defined(_WIN32)
+
+#ifndef CompressRes_hpp
+#define CompressRes_hpp
+
+#include <string>
+#include <vector>
+
+#if defined(ANDROID)
+
+#include "android/log.h"
+
+#define  LOG_TAG    "CompressRes-log"
+#define  COMPRESS_LOG(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+
+#elif defined(__APPLE__)
+
+#define  COMPRESS_LOG(...)  printf(__VA_ARGS__)
+
+#endif
+
+using namespace std;
+
 class CompressRes
 {
 public:
@@ -90,7 +92,7 @@ public:
      * 解压缩文件
      */
     bool DeCompress(const char *compressPath, const char *destWritePath);
-	bool DeCompress(unsigned char *fileContent, long fileSize, const char *destWritePath);
+    bool DeCompress(unsigned char *fileContent, long fileSize, const char *destWritePath);
     
     /*
      * 添加需要压缩的目录
@@ -101,7 +103,9 @@ private:
     /*
      * 递归压缩所有文件到destCompressFile
      */
-    void compressFiles(const char *sourceDirPath, FILE *destCompressFile, const char *sourceDirName);
+    void compressDir(const char *sourceDirPath, FILE *destCompressFile, const char *sourceDirName);
+    
+    void compressFile(const char *filePath, FILE *destCompressFile, const char *fileName);
     
     /*
      * 读取二进制文件
@@ -140,3 +144,4 @@ private:
 #endif /* CompressRes_hpp */
 
 #endif
+
