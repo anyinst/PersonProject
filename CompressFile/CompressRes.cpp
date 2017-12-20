@@ -191,14 +191,7 @@ void CompressRes::compressDir(const char *sourceDirPath, FILE *destCompressFile,
             
             unsigned int fileContentLen = 0;
             char *contentBuf = NULL;
-            if(isTxtFileType(dirp->d_name)) // txt type
-            {
-                contentBuf = readTxtFile(tempPath, fileContentLen);
-            }
-            else
-            {
-                contentBuf = readBinaryFile(tempPath, fileContentLen);
-            }
+            contentBuf = readBinaryFile(tempPath, fileContentLen);
             
             // 写入文件数据大小
             if (fwrite(&fileContentLen, sizeof(unsigned int), 1, destCompressFile) != 1)
@@ -243,14 +236,7 @@ void CompressRes::compressFile(const char *filePath, FILE *destCompressFile, con
     
     unsigned int fileContentLen = 0;
     char *contentBuf = NULL;
-    if(isTxtFileType(fileName)) // txt type
-    {
-        contentBuf = readTxtFile((char*)filePath, fileContentLen);
-    }
-    else
-    {
-        contentBuf = readBinaryFile((char*)filePath, fileContentLen);
-    }
+    contentBuf = readBinaryFile((char*)filePath, fileContentLen);
     
     // 写入文件数据大小
     if (fwrite(&fileContentLen, sizeof(unsigned int), 1, destCompressFile) != 1)
