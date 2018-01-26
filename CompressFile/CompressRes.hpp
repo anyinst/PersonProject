@@ -7,20 +7,33 @@
 
 /*
  * 压缩文件具体用法：
+ * printf("start compress...\n");
  * CompressRes tt;
- * while(true)
- * {
- * printf("enter dir name: ");
- * char buff[1024] = {0};
- * scanf("%s", buff);
- 
- * if(strcmp(buff, ".") == 0){
- * break;
- * }
- 
- * tt.addCompressDir(buff);
- * }
- * tt.Compress();
+ *     
+ *  printf("enter compress file name: ");
+ *  char buff[1024] = {0};
+ *  
+ *  tt.setCompressFileName(buff);
+ *  
+ *  printf("enter decode flag num: ");
+ *  int flagNum = 0;
+ *  scanf("%d", &flagNum);  //5 编码值
+ *  tt.setDecodeFlag(flagNum);
+ *  
+ *  while(true)
+ *  {
+ *      printf("enter dir name: ");
+ *      char buff[1024] = {0};
+ *      scanf("%s", buff);
+ *      
+ *      if(strcmp(buff, ".") == 0){
+ *          break;
+ *      }
+ *      
+ *      tt.addCompressDir(buff);
+ *  }
+ *  tt.Compress();
+
 */
 
 /*
@@ -32,6 +45,7 @@
  *     string compressPath = FileUtils::getInstance()->fullPathForFilename("res_compress");
  *     cocos2d::log("start compressPath");
  *     CompressRes rtt;
+ *	   rtt.setDecodeFlag(5);
  *     rtt.DeCompress(compressPath.c_str(), FileUtils::getInstance()->getWritablePath().c_str());
  *     UserDefault::getInstance()->setBoolForKey("firstExecute", true);
  * }
@@ -44,6 +58,7 @@
  *     unsigned char *buf = FileUtils::getInstance()->getFileData("res_compress", "r", &fileSize);
  *     cocos2d::log("start compressPath");
  *     CompressRes rtt;
+ *     rtt.setDecodeFlag(5);
  *     rtt.DeCompress(buf, fileSize, FileUtils::getInstance()->getWritablePath().c_str());
  *     UserDefault::getInstance()->setBoolForKey("firstExecute", true);
  * }
@@ -90,6 +105,7 @@ public:
     
     /*
      * 解压缩文件
+     * eg.DeCompress("/var/containers/Bundle/compressFile", "usr/lzc/Documents/")
      */
     bool DeCompress(const char *compressPath, const char *destWritePath);
     bool DeCompress(unsigned char *fileContent, long fileSize, const char *destWritePath);
@@ -98,6 +114,11 @@ public:
      * 添加需要压缩的目录
      */
     void addCompressDir(string dirName);
+    
+    void setCompressFileName(const char *fileName);
+    std::string getCompressFileName();
+    
+    void setDecodeFlag(int decodeFlag);
     
 private:
     /*
@@ -137,8 +158,18 @@ private:
      * eg: getRelativeDirPath("/lib/usr/lzc/itd/main.cpp", "/lzc/", out) -> "lzc/itd/main.cpp"
      */
     void getRelativeDirPath(char *dirPath, char *subDirPath, char *outPath);
+    
+    /*
+	 * 编码:对数据进行异或编码
+     */
+    string encode(const unsigned char* Data,int DataLen,char *outByte);
+    
 private:
     std::vector<string> m_dirList;
+    
+    std::string m_compressFileName;
+    
+    int m_nDecodeFlag;
 };
 
 #endif /* CompressRes_hpp */
