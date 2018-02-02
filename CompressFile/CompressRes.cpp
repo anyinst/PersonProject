@@ -16,8 +16,6 @@
 #include <sys/stat.h>
 #include <string.h>
 
-const char *TXT_SUFFIX_LIST[] = {"plist", "lua", ""};
-
 CompressRes::CompressRes()
 {
 }
@@ -86,54 +84,16 @@ bool CompressRes::Compress()
 
 bool CompressRes::DeCompress(const char *compressPath, const char *destWritePath)
 {
-    FILE *decompressFile = fopen(compressPath, "r");
+    unsigned int fileContentLen = 0;
+    char *buff = this->readBinaryFile((char *)compressPath, fileContentLen);
     
-    while(true)
-    {
-        int pathLen = 0;
-        if (fread(&pathLen, sizeof(unsigned int), 1, decompressFile) == 0)
-        {
-            //不成功或读到文件末尾
-            break;
-        }
-        
-        char *filePath = (char *)malloc(pathLen);
-        if (fread(filePath, pathLen, 1, decompressFile) == 0)
-        {
-            break;
-        }
-        COMPRESS_LOG("CompressRes::DeCompress = %s\n", filePath);
-        
-        int fileConentLen = 0;
-        if (fread(&fileConentLen, sizeof(unsigned int), 1, decompressFile) == 0)
-        {
-            break;
-        }
-        
-        char *fileContentBuf = (char*)malloc(fileConentLen);
-        if (fread(fileContentBuf, fileConentLen, 1, decompressFile) == 0)
-        {
-            break;
-        }
-        char *encodeContent = (char *)malloc(fileConentLen);
-        this->base64Encode((const unsigned char*)fileContentBuf, fileConentLen, encodeContent);
-        
-        char fileWritePath[1024] = {0};
-        sprintf(fileWritePath, "%s%s", destWritePath, filePath);
-        FILE *newFile;
-        createFile(fileWritePath, &newFile);
-        fwrite(encodeContent, fileConentLen, 1, newFile);
-        fclose(newFile);
-    }
-    
-    fclose(decompressFile);
+    this->DeCompress((unsigned char *)buff, (long)fileContentLen, destWritePath);
     
     return true;
 }
 
 bool  CompressRes::DeCompress(unsigned char *fileContent, long fileSize, const char *destWritePath)
 {
-    long curSize = 0;
     unsigned char *curPos = fileContent;
     while (true)
     {
@@ -155,7 +115,7 @@ bool  CompressRes::DeCompress(unsigned char *fileContent, long fileSize, const c
         curPos = curPos + fileConentLen;
         
         char *encodeContent = (char *)malloc(fileConentLen);
-        this->base64Encode((const unsigned char*)fileContentBuf, fileConentLen, encodeContent);
+        this->encode((const unsigned char*)fileContentBuf, fileConentLen, encodeContent);
         
         char fileWritePath[1024] = { 0 };
         sprintf(fileWritePath, "%s%s", destWritePath, filePath);
@@ -195,40 +155,9 @@ void CompressRes::compressDir(const char *sourceDirPath, FILE *destCompressFile,
             char filePath[1024] = {0};
             getRelativeDirPath(tempPath, dirNameBuf, filePath);
             
-            COMPRESS_LOG("CompressRes  %s\n", filePath);
-            unsigned int pathLen = strlen(filePath) + 1;  // +1表示写入末尾的\0
-            if (fwrite(&pathLen, sizeof(unsigned int), 1, destCompressFile) != 1) // 写入文件路径长度
-            {
-                COMPRESS_LOG("pathLen write error");
+            if(this->writeData(tempPath, destCompressFile, filePath) == false){
                 break;
             }
-            
-            if (fwrite(filePath, 1, pathLen, destCompressFile) != pathLen)  // 写入文件路径
-            {
-                COMPRESS_LOG("tempPath write error");
-                break;
-            }
-            
-            unsigned int fileContentLen = 0;
-            char *contentBuf = NULL;
-            contentBuf = readBinaryFile(tempPath, fileContentLen);
-            
-            char *encodeContent = (char *)malloc(fileContentLen);
-            this->base64Encode((const unsigned char*)contentBuf, fileContentLen, encodeContent);
-            // 写入文件数据大小
-            if (fwrite(&fileContentLen, sizeof(unsigned int), 1, destCompressFile) != 1)
-            {
-                COMPRESS_LOG("fileContentLen write error");
-            }
-            
-            // 写入文件数据
-            if (fwrite(encodeContent, fileContentLen, 1, destCompressFile) != 1)
-            {
-                COMPRESS_LOG("contentBuf write error");
-            }
-            
-            free(contentBuf);
-            free(encodeContent);
         } else if (dirp->d_type == DT_DIR) {
             // 文件夹
             if(strcmp(dirp->d_name, ".") != 0 && strcmp(dirp->d_name, "..") != 0)
@@ -245,38 +174,47 @@ void CompressRes::compressDir(const char *sourceDirPath, FILE *destCompressFile,
 
 void CompressRes::compressFile(const char *filePath, FILE *destCompressFile, const char *fileName)
 {
+    this->writeData((char*)filePath, destCompressFile, fileName);
+}
+
+bool CompressRes::writeData(char *filePath, FILE *destCompressFile, const char *fileName)
+{
     unsigned int pathLen = strlen(fileName) + 1;  // +1表示写入末尾的\0
     if (fwrite(&pathLen, sizeof(unsigned int), 1, destCompressFile) != 1) // 写入文件路径长度
     {
         COMPRESS_LOG("pathLen write error");
+        return false;
     }
     
     if (fwrite(fileName, 1, pathLen, destCompressFile) != pathLen)  // 写入文件路径
     {
         COMPRESS_LOG("tempPath write error");
+        return false;
     }
     COMPRESS_LOG("CompressRes  %s\n", fileName);
     
     unsigned int fileContentLen = 0;
-    char *contentBuf = NULL;
-    contentBuf = readBinaryFile((char*)filePath, fileContentLen);
-    
+    char *contentBuf = readBinaryFile(filePath, fileContentLen);
     char *encodeContent = (char *)malloc(fileContentLen);
-    this->base64Encode((const unsigned char*)contentBuf, fileContentLen, encodeContent);
+    this->encode((const unsigned char*)contentBuf, fileContentLen, encodeContent);
     // 写入文件数据大小
     if (fwrite(&fileContentLen, sizeof(unsigned int), 1, destCompressFile) != 1)
     {
         COMPRESS_LOG("fileContentLen write error");
+        return false;
     }
     
     // 写入文件数据
     if (fwrite(encodeContent, fileContentLen, 1, destCompressFile) != 1)
     {
         COMPRESS_LOG("contentBuf write error");
+        return false;
     }
     
     free(contentBuf);
     free(encodeContent);
+    
+    return true;
 }
 
 char *CompressRes::readBinaryFile(char* fname, unsigned int &size)
@@ -294,32 +232,6 @@ char *CompressRes::readBinaryFile(char* fname, unsigned int &size)
     fclose(imgP);
     
     return imgbuf;
-}
-
-char *CompressRes::readTxtFile(char *fname, unsigned int &size)
-{
-    FILE *fp;
-    char *str;
-    char txt[1000];
-    int filesize;
-    if ((fp=fopen(fname,"r"))==NULL){
-        COMPRESS_LOG("打开文件%s错误\n",fname);
-        return NULL;
-    }
-    
-    fseek(fp,0,SEEK_END);
-    
-    filesize = ftell(fp);
-    size = filesize;
-    str=(char *)malloc(filesize);
-    str[0]=0;
-    
-    rewind(fp);
-    while((fgets(txt,1000,fp))!=NULL){
-        strcat(str,txt);
-    }
-    fclose(fp);
-    return str;
 }
 
 bool CompressRes::createFile(char *filepath, FILE **newFILE)
@@ -362,44 +274,6 @@ bool CompressRes::createFile(char *filepath, FILE **newFILE)
     return true;
 }
 
-void CompressRes::getFileSuffix(const char *filename, char *out)
-{
-    char *dotPos = strrchr((char*)filename, '.');
-    
-    if(dotPos != NULL)
-    {
-        sprintf(out, "%s", dotPos+1);
-    }
-}
-
-bool CompressRes::isTxtFileType(const char *filename)
-{
-    bool isTxtFile = false;
-    
-    char suffixBuf[1024] = {0};
-    getFileSuffix(filename, suffixBuf);
-    
-    int suffixIndex = 0;
-    while(true)
-    {
-        const char *curSuffix = TXT_SUFFIX_LIST[suffixIndex];
-        if(curSuffix == "")
-        {
-            break;
-        }
-        
-        if(strcmp(curSuffix, suffixBuf) == 0)
-        {
-            isTxtFile = true;
-            break;
-        }
-        
-        suffixIndex ++;
-    }
-    
-    return isTxtFile;
-}
-
 void CompressRes::getRelativeDirPath(char *dirPath, char *subDirPath, char *outPath)
 {
     char *startPos = strstr(dirPath, subDirPath);
@@ -411,9 +285,6 @@ void CompressRes::getRelativeDirPath(char *dirPath, char *subDirPath, char *outP
 
 string CompressRes::encode(const unsigned char* Data, int DataLen, char *outByte)
 {
-    int _offset = sizeof(int);
-    int curPos = 0;
-    
     unsigned char *flagBit = (unsigned char *)malloc(sizeof(int));
     memcpy(flagBit, &m_nDecodeFlag, sizeof(int));
     int curFlagBit = 0;

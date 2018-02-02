@@ -134,24 +134,14 @@ private:
     char *readBinaryFile(char* fname, unsigned int &size);
     
     /*
-     * 读取文本文件
+     * 写数据到文件
      */
-    char *readTxtFile(char *fname, unsigned int &size);
+    bool writeData(char *filePath, FILE *destCompressFile, const char *fileName);
     
     /*
      * 创建文件，如果路径中存在文件夹没有创建则会创建文件夹直至完整路径生成
      */
     bool createFile(char *filepath, FILE **newFILE);
-    
-    /*
-     * 获取文件后缀
-     */
-    void getFileSuffix(const char *filename, char *out);
-    
-    /*
-     * 文件是否为文本文件
-     */
-    bool isTxtFileType(const char *filename);
     
     /*
      * 获得文件的目录的子目录
